@@ -26,6 +26,7 @@ const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
 
   const db = createClient(SUPA_URL, SUPA_KEY);
   let currentUserId = null;
+  let signingOut = false;
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -157,7 +158,7 @@ const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
 
   // Debounced save — called from useEffect hooks in App()
   window.__kinaraSave = debounce(async (key, value) => {
-    if (!currentUserId) return;
+    if (!currentUserId || signingOut) return;
     try {
       if (key === 'sessions')  await syncSessions(currentUserId, value);
       if (key === 'restDays')  await syncRestDays(currentUserId, value);
@@ -171,11 +172,14 @@ const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
 
   // Sign-out — call this from a button in your Settings or BurgerDrawer
   window.__kinaraSignOut = async () => {
-    await db.auth.signOut();
+    signingOut = true;          // prevent sync from overwriting cloud data
     currentUserId = null;
-    window.__kinaraData = {};
+    await db.auth.signOut();
     location.reload();
   };
+
+  // ── Expose user email to React app ──────────────────────────────────────────
+  window.__kinaraUserEmail = null;
 
   // ── Auth state machine ────────────────────────────────────────────────────────
 
@@ -195,6 +199,7 @@ const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
   db.auth.onAuthStateChange(async (event, session) => {
     if (session?.user) {
       currentUserId = session.user.id;
+      window.__kinaraUserEmail = session.user.email || null;
 
       if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
         const data = await loadUserData(session.user.id);
@@ -202,7 +207,8 @@ const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
       }
     } else {
       currentUserId = null;
-      showAuthGate();
+      window.__kinaraUserEmail = null;
+      if (!signingOut) showAuthGate();
     }
   });
 
@@ -220,8 +226,67 @@ const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
     });
   }
 
+  // ── Email/Password Auth ────────────────────────────────────────────────────
+
+  function showAuthError(msg) {
+    const el = document.getElementById('auth-error');
+    if (el) { el.textContent = msg; el.style.display = msg ? 'block' : 'none'; }
+  }
+
+  async function signInWithEmail() {
+    const email = document.getElementById('auth-email')?.value?.trim();
+    const pass  = document.getElementById('auth-password')?.value;
+    if (!email || !pass) { showAuthError('Please enter email and password.'); return; }
+
+    showAuthError('');
+    const btn = document.getElementById('email-signin-btn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Signing in…'; }
+
+    const { error } = await db.auth.signInWithPassword({ email, password: pass });
+    if (error) {
+      showAuthError(error.message);
+      if (btn) { btn.disabled = false; btn.textContent = 'Sign In'; }
+    }
+  }
+
+  async function signUpWithEmail() {
+    const email = document.getElementById('auth-email')?.value?.trim();
+    const pass  = document.getElementById('auth-password')?.value;
+    if (!email || !pass) { showAuthError('Please enter email and password.'); return; }
+    if (pass.length < 6) { showAuthError('Password must be at least 6 characters.'); return; }
+
+    showAuthError('');
+    const btn = document.getElementById('email-signup-btn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Creating account…'; }
+
+    const { error } = await db.auth.signUp({
+      email,
+      password: pass,
+      options: { emailRedirectTo: window.location.origin + window.location.pathname },
+    });
+    if (error) {
+      showAuthError(error.message);
+      if (btn) { btn.disabled = false; btn.textContent = 'Sign Up'; }
+    } else {
+      showAuthError('');
+      showLoading('Check your email to confirm your account, then sign in.');
+    }
+  }
+
+  // ── Bind buttons on DOMContentLoaded ───────────────────────────────────────
+
   document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('google-signin-btn')
       ?.addEventListener('click', signInWithGoogle);
+    document.getElementById('email-signin-btn')
+      ?.addEventListener('click', signInWithEmail);
+    document.getElementById('email-signup-btn')
+      ?.addEventListener('click', signUpWithEmail);
+
+    // Allow Enter key to submit from password field
+    document.getElementById('auth-password')
+      ?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') signInWithEmail();
+      });
   });
 })();
