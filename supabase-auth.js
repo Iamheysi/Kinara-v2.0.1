@@ -1,11 +1,11 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // supabase-auth.js  —  Kinara / Workout Hub  (add BEFORE React/Babel scripts)
 // ─────────────────────────────────────────────────────────────────────────────
-// SETUP: Replace the two placeholders below with your Supabase project values.
+// SETUP: Replace the two placeholders below with the Supabase project values.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const SUPA_URL = 'YOUR_SUPABASE_URL';      // e.g. https://xxxx.supabase.co
-const SUPA_KEY = 'YOUR_SUPABASE_ANON_KEY'; // starts with "eyJ..."
+const SUPA_URL = 'https://rivnhmnseyeqocpdatfj.supabase.co';      // e.g. https://xxxx.supabase.co
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJpdm5obW5zZXllcW9jcGRhdGZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNDQ3OTgsImV4cCI6MjA4ODkyMDc5OH0.lKEMitwo4_rq9fKKxwa0yy9VY_wxFpwy2i_pbj5T91M'; // starts with "eyJ..."
 
 // ── Assumed table schemas (adjust column names if yours differ) ───────────────
 //
