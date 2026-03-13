@@ -8,6 +8,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="theme-color" content="#0D0D0D"/>
   <title>Kinara — Workout Hub</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="supabase-auth.js"></script>
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -56,6 +58,17 @@
   </style>
 </head>
 <body>
+<div id="auth-gate" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;background:#0D0D0D;font-family:'DM Sans',sans-serif;gap:24px;">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+    <svg width="36" height="36" viewBox="0 0 32 32" fill="none"><path d="M16 2L30 16L16 30L2 16Z" stroke="#C4826A" stroke-width="1.5" fill="none" opacity="0.3"/><path d="M9 14L16 8L23 14" stroke="#FFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 18L16 24L23 18" stroke="#C4826A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="16" cy="16" r="1.8" fill="#C4826A"/></svg>
+    <span style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;color:#F0F0F0;letter-spacing:1px;">KINARA</span>
+  </div>
+  <p id="auth-loading" style="color:#7A7A7A;font-size:13px;">Sign in to sync your workouts</p>
+  <button id="google-signin-btn" style="display:flex;align-items:center;gap:10px;padding:12px 28px;border-radius:12px;border:1px solid #2E2E2E;background:#1C1C1C;color:#F0F0F0;font-size:14px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:border-color 0.2s;">
+    <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59a14.5 14.5 0 010-9.18l-7.98-6.19a24.03 24.03 0 000 21.56l7.98-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+    Continue with Google
+  </button>
+</div>
 <div id="root"></div>
 <script type="text/babel">
 const {useState,useEffect,useRef}=React;
@@ -136,7 +149,7 @@ function BurgerDrawer({open,onClose,onOpenSettings,onOpenHelp,streak,profileName
   const initials=profileName.trim().split(" ").map(w=>w[0]?.toUpperCase()||"").join("").slice(0,2)||"?";
   const save=()=>{if(draft.trim())setProfileName(draft.trim());setEditing(false);};
   const ARow=({icon,label,onClick})=>{const[h,sH]=useState(false);return(<button onMouseEnter={()=>sH(true)} onMouseLeave={()=>sH(false)} onClick={onClick} style={{width:"100%",display:"flex",alignItems:"center",justifyContent:"space-between",padding:"11px 4px",background:"transparent",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",opacity:h?0.65:1,transition:"opacity 0.15s"}}><div style={{display:"flex",alignItems:"center",gap:10}}><span style={{color:c.textSecondary}}>{icon}</span><span style={{fontSize:13,color:c.textPrimary}}>{label}</span></div><span style={{color:c.textMuted}}>{Ic.arrow}</span></button>);};
-  return(<><div onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.6)",zIndex:300,backdropFilter:"blur(4px)",opacity:open?1:0,pointerEvents:open?"auto":"none",transition:"opacity 0.25s"}}/><div style={{position:"fixed",top:0,right:0,width:290,height:"100vh",background:c.drawerBg,borderLeft:`1px solid ${c.border}`,zIndex:301,transform:open?"translateX(0)":"translateX(100%)",transition:"transform 0.28s cubic-bezier(0.4,0,0.2,1)",display:"flex",flexDirection:"column"}}><div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"20px 20px 16px",borderBottom:`1px solid ${c.border}`,flexShrink:0}}><div style={{display:"flex",alignItems:"center",gap:9}}><LogoMark size={20} c={c}/><p style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:16,fontWeight:900,color:c.textPrimary,letterSpacing:3}}>KINARA</p></div><button onClick={onClose} style={{background:"none",border:`1px solid ${c.border}`,color:c.textSecondary,borderRadius:7,width:32,height:32,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"}}>{Ic.close}</button></div><div style={{flex:1,overflow:"auto",padding:"20px 20px 0"}}><p style={{fontSize:9,color:c.textMuted,letterSpacing:1.8,fontWeight:700,textTransform:"uppercase",marginBottom:10}}>{t.account}</p><div style={{display:"flex",alignItems:"center",gap:12,padding:"12px 14px",background:c.card,border:`1px solid ${c.border}`,borderRadius:12,marginBottom:6}}><div style={{width:44,height:44,borderRadius:12,background:profilePhoto?`url(${profilePhoto}) center/cover`:`linear-gradient(135deg,${c.primary},${c.primaryLight})`,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'Barlow Condensed',sans-serif",fontSize:16,fontWeight:900,color:"#fff",flexShrink:0,border:`2px solid ${c.border}`}}>{!profilePhoto&&initials}</div><div style={{flex:1,minWidth:0}}>{editing?(<div style={{display:"flex",gap:5,alignItems:"center"}}><input value={draft} onChange={e=>setDraft(e.target.value)} onKeyDown={e=>{if(e.key==="Enter")save();if(e.key==="Escape")setEditing(false);}} autoFocus style={{flex:1,background:c.inputBg,border:`1px solid ${c.primary}`,borderRadius:6,padding:"4px 7px",color:c.textPrimary,fontSize:13,fontFamily:"'DM Sans',sans-serif",minWidth:0}}/><button onClick={save} style={{background:c.primary,color:"#fff",border:"none",borderRadius:6,padding:"4px 9px",fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>{t.saveProfile}</button></div>):(<div style={{display:"flex",alignItems:"center",gap:6}}><p style={{fontSize:13,fontWeight:600,color:c.textPrimary,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",flex:1}}>{profileName}</p><button onClick={()=>{setDraft(profileName);setEditing(true);}} style={{background:"none",border:"none",color:c.textMuted,cursor:"pointer",padding:0,display:"flex"}}>{Ic.edit}</button></div>)}<p style={{fontSize:10.5,color:c.textSecondary,marginTop:2}}>{streak>0?`${streak}-day streak`:t.noStreak}</p></div></div><div style={{height:1,background:c.border,margin:"16px 0"}}/><p style={{fontSize:9,color:c.textMuted,letterSpacing:1.8,fontWeight:700,textTransform:"uppercase",marginBottom:8}}>App</p><ARow icon={Ic.settings} label={t.appSettings} onClick={()=>{onClose();onOpenSettings();}}/><ARow icon={Ic.bell} label={t.reminders} onClick={()=>{}}/><ARow icon={Ic.help} label={t.helpSupport} onClick={()=>{onClose();}}/></div><div style={{padding:"14px 20px",borderTop:`1px solid ${c.border}`,flexShrink:0}}><p style={{fontSize:10,color:c.textMuted,textAlign:"center"}}>{t.allDataLocal}</p></div></div></>);
+  return(<><div onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.6)",zIndex:300,backdropFilter:"blur(4px)",opacity:open?1:0,pointerEvents:open?"auto":"none",transition:"opacity 0.25s"}}/><div style={{position:"fixed",top:0,right:0,width:290,height:"100vh",background:c.drawerBg,borderLeft:`1px solid ${c.border}`,zIndex:301,transform:open?"translateX(0)":"translateX(100%)",transition:"transform 0.28s cubic-bezier(0.4,0,0.2,1)",display:"flex",flexDirection:"column"}}><div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"20px 20px 16px",borderBottom:`1px solid ${c.border}`,flexShrink:0}}><div style={{display:"flex",alignItems:"center",gap:9}}><LogoMark size={20} c={c}/><p style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:16,fontWeight:900,color:c.textPrimary,letterSpacing:3}}>KINARA</p></div><button onClick={onClose} style={{background:"none",border:`1px solid ${c.border}`,color:c.textSecondary,borderRadius:7,width:32,height:32,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"}}>{Ic.close}</button></div><div style={{flex:1,overflow:"auto",padding:"20px 20px 0"}}><p style={{fontSize:9,color:c.textMuted,letterSpacing:1.8,fontWeight:700,textTransform:"uppercase",marginBottom:10}}>{t.account}</p><div style={{display:"flex",alignItems:"center",gap:12,padding:"12px 14px",background:c.card,border:`1px solid ${c.border}`,borderRadius:12,marginBottom:6}}><div style={{width:44,height:44,borderRadius:12,background:profilePhoto?`url(${profilePhoto}) center/cover`:`linear-gradient(135deg,${c.primary},${c.primaryLight})`,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'Barlow Condensed',sans-serif",fontSize:16,fontWeight:900,color:"#fff",flexShrink:0,border:`2px solid ${c.border}`}}>{!profilePhoto&&initials}</div><div style={{flex:1,minWidth:0}}>{editing?(<div style={{display:"flex",gap:5,alignItems:"center"}}><input value={draft} onChange={e=>setDraft(e.target.value)} onKeyDown={e=>{if(e.key==="Enter")save();if(e.key==="Escape")setEditing(false);}} autoFocus style={{flex:1,background:c.inputBg,border:`1px solid ${c.primary}`,borderRadius:6,padding:"4px 7px",color:c.textPrimary,fontSize:13,fontFamily:"'DM Sans',sans-serif",minWidth:0}}/><button onClick={save} style={{background:c.primary,color:"#fff",border:"none",borderRadius:6,padding:"4px 9px",fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>{t.saveProfile}</button></div>):(<div style={{display:"flex",alignItems:"center",gap:6}}><p style={{fontSize:13,fontWeight:600,color:c.textPrimary,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",flex:1}}>{profileName}</p><button onClick={()=>{setDraft(profileName);setEditing(true);}} style={{background:"none",border:"none",color:c.textMuted,cursor:"pointer",padding:0,display:"flex"}}>{Ic.edit}</button></div>)}<p style={{fontSize:10.5,color:c.textSecondary,marginTop:2}}>{streak>0?`${streak}-day streak`:t.noStreak}</p></div></div><div style={{height:1,background:c.border,margin:"16px 0"}}/><p style={{fontSize:9,color:c.textMuted,letterSpacing:1.8,fontWeight:700,textTransform:"uppercase",marginBottom:8}}>App</p><ARow icon={Ic.settings} label={t.appSettings} onClick={()=>{onClose();onOpenSettings();}}/><ARow icon={Ic.bell} label={t.reminders} onClick={()=>{}}/><ARow icon={Ic.help} label={t.helpSupport} onClick={()=>{onClose();}}/>{window.__kinaraSignOut&&(<><div style={{height:1,background:c.border,margin:"16px 0"}}/><button onClick={()=>window.__kinaraSignOut()} style={{width:"100%",display:"flex",alignItems:"center",gap:10,padding:"11px 4px",background:"transparent",border:"none",cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}><span style={{color:"#B05050"}}>⎋</span><span style={{fontSize:13,color:"#B05050"}}>Sign Out</span></button></>)}</div><div style={{padding:"14px 20px",borderTop:`1px solid ${c.border}`,flexShrink:0}}><p style={{fontSize:10,color:c.textMuted,textAlign:"center"}}>{window.__kinaraSignOut?"Cloud sync active":"Data saved locally"}</p></div></div></>);
 }
 
 function Sidebar({tab,setTab,running,streak,profileName,profilePhoto,c,t,onOpenSettings}){
@@ -235,23 +248,22 @@ function App(){
   const [dataLoaded,setDataLoaded]=useState(false);
   const fileInputRef=useRef(null);const photoInputRef=useRef(null);const timerRef=useRef(null);
 
-  // ── Load from localStorage on mount ──────────────────────────────────
+  // ── Load data: prefer Supabase cloud data, fall back to localStorage ──
   useEffect(()=>{
+    const cloud=window.__kinaraData||{};
+    const hasCloud=Object.keys(cloud).length>0;
     try{
-      const saved=localStorage.getItem('kinara_v7');
-      if(saved){
-        const d=JSON.parse(saved);
-        if(Array.isArray(d.sessions))setSessions(d.sessions);
-        if(Array.isArray(d.restDaysLog))setRestDaysLog(d.restDaysLog);
-        if(Array.isArray(d.plans))setPlans(d.plans);
-        if(d.schedule)setSchedule(d.schedule);
-        if(d.theme)setTheme(d.theme);
-        if(d.lang)setLang(d.lang);
-        if(d.profileName)setProfileName(d.profileName);
-        if(d.profileBio!==undefined)setProfileBio(d.profileBio);
-        if(d.profileGoal)setProfileGoal(d.profileGoal);
-        if(d.profilePhoto!==undefined)setProfilePhoto(d.profilePhoto);
-      }
+      const saved=hasCloud?cloud:JSON.parse(localStorage.getItem('kinara_v7')||'{}');
+      if(Array.isArray(saved.sessions))setSessions(saved.sessions);
+      if(Array.isArray(saved.restDaysLog))setRestDaysLog(saved.restDaysLog);
+      if(Array.isArray(saved.plans))setPlans(saved.plans);
+      if(saved.schedule)setSchedule(saved.schedule);
+      if(saved.theme)setTheme(saved.theme);
+      if(saved.lang)setLang(saved.lang);
+      if(saved.profileName)setProfileName(saved.profileName);
+      if(saved.profileBio!==undefined)setProfileBio(saved.profileBio);
+      if(saved.profileGoal)setProfileGoal(saved.profileGoal);
+      if(saved.profilePhoto!==undefined)setProfilePhoto(saved.profilePhoto);
     }catch(e){}
     setDataLoaded(true);
   },[]);
@@ -262,6 +274,16 @@ function App(){
     try{
       localStorage.setItem('kinara_v7',JSON.stringify({sessions,restDaysLog,plans,schedule,theme,lang,profileName,profileBio,profileGoal,profilePhoto}));
     }catch(e){}
+  },[sessions,restDaysLog,plans,schedule,theme,lang,profileName,profileBio,profileGoal,profilePhoto,dataLoaded]);
+
+  // ── Cloud sync to Supabase (debounced via supabase-auth.js) ───────────
+  useEffect(()=>{
+    if(!dataLoaded||!window.__kinaraSave)return;
+    window.__kinaraSave('sessions',sessions);
+    window.__kinaraSave('restDays',restDaysLog);
+    window.__kinaraSave('plans',plans);
+    window.__kinaraSave('schedule',schedule);
+    window.__kinaraSave('profile',{profileName,profileBio,profileGoal,profilePhoto,theme,lang});
   },[sessions,restDaysLog,plans,schedule,theme,lang,profileName,profileBio,profileGoal,profilePhoto,dataLoaded]);
 
   const c=theme==="dark"?DARK:LIGHT;const t=TR[lang];
