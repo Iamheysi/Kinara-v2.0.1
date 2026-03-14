@@ -77,7 +77,7 @@ const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
       loading: 'Loading your data…',
       verifyBtn: 'Verify Code',
       verifying: 'Verifying…',
-      otpInstructions: 'Enter the 6-digit code from your email, or click the link in the message.',
+      otpInstructions: 'Enter the 8-digit code from your email, or click the link in the message.',
       otpInvalid: 'Invalid code. Please try again.',
       otpExpired: 'Code expired. We sent a new one — check your email.',
       confirmSent: 'We sent a verification code to',
@@ -121,7 +121,7 @@ const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
       loading: 'Загружаем данные…',
       verifyBtn: 'Подтвердить код',
       verifying: 'Проверяем…',
-      otpInstructions: 'Введите 6-значный код из письма или перейдите по ссылке в сообщении.',
+      otpInstructions: 'Введите 8-значный код из письма или перейдите по ссылке в сообщении.',
       otpInvalid: 'Неверный код. Попробуйте ещё раз.',
       otpExpired: 'Код истёк. Мы отправили новый — проверьте почту.',
       confirmSent: 'Мы отправили код подтверждения на',
@@ -525,7 +525,7 @@ const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
     const btn = document.getElementById('verify-otp-btn');
     const code = getOtpCode();
     if (btn) {
-      const ready = code.length === 6;
+      const ready = code.length === 8;
       btn.disabled = !ready;
       btn.style.background = ready ? '#2B55CC' : '#C4CFEA';
       btn.style.cursor = ready ? 'pointer' : 'not-allowed';
@@ -565,7 +565,7 @@ const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
         if (val && idx < digits.length - 1) digits[idx + 1].focus();
         updateVerifyButton();
         // Auto-verify when all 6 digits are entered
-        if (getOtpCode().length === 6) verifyOtp();
+        if (getOtpCode().length === 8) verifyOtp();
       });
       input.addEventListener('keydown', (e) => {
         if (e.key === 'Backspace' && !input.value && idx > 0) {
@@ -578,7 +578,7 @@ const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
       // Handle paste — spread across all inputs
       input.addEventListener('paste', (e) => {
         e.preventDefault();
-        const pasted = (e.clipboardData.getData('text') || '').replace(/\D/g, '').slice(0, 6);
+        const pasted = (e.clipboardData.getData('text') || '').replace(/\D/g, '').slice(0, 8);
         pasted.split('').forEach((ch, i) => {
           if (digits[i]) {
             digits[i].value = ch;
@@ -588,14 +588,14 @@ const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
         const focusIdx = Math.min(pasted.length, digits.length - 1);
         digits[focusIdx].focus();
         updateVerifyButton();
-        if (pasted.length === 6) verifyOtp();
+        if (pasted.length === 8) verifyOtp();
       });
     });
   }
 
   async function verifyOtp() {
     const code = getOtpCode();
-    if (code.length !== 6 || !lastSignupEmail) return;
+    if (code.length !== 8 || !lastSignupEmail) return;
 
     showError('otp-error', '');
     const btn = document.getElementById('verify-otp-btn');
