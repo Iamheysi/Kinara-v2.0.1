@@ -48,6 +48,11 @@
       .kb-bottom-nav{display:none!important;}
     }
     @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.9)}}
+    @keyframes confirmPulse{0%{transform:scale(1);opacity:0.4}50%{transform:scale(1.35);opacity:0}100%{transform:scale(1);opacity:0.4}}
+    .otp-digit:focus{border-color:#2B55CC!important;box-shadow:0 0 0 3px rgba(43,85,204,0.12)!important;}
+    .otp-digit.otp-filled{border-color:#2B55CC!important;background:#EEF2FF!important;}
+    .otp-digit.otp-error-shake{animation:otpShake 0.4s ease;}
+    @keyframes otpShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
     @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
     @keyframes confettiFall{0%{transform:translateY(-20px) rotate(0deg);opacity:1}100%{transform:translateY(240px) rotate(720deg);opacity:0}}
     @keyframes restPulse{0%,100%{box-shadow:0 0 0 0 rgba(201,168,76,.27)}50%{box-shadow:0 0 0 8px transparent}}
@@ -100,18 +105,36 @@
       <button id="email-signup-btn" style="width:100%;padding:13px 0;border-radius:10px;border:none;background:#2B55CC;color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background 0.2s;margin-top:2px;" data-i18n="createAccountBtn">Create Account</button>
       <p style="text-align:center;font-size:13px;color:#5A6A84;margin:4px 0 0;"><span data-i18n="hasAccount">Already have an account?</span> <a href="#" id="show-signin-link" style="color:#2B55CC;font-weight:600;text-decoration:none;" data-i18n="signInLink">Sign In</a></p>
     </div>
-    <!-- ── Email Confirmation Sent view (hidden by default) ── -->
-    <div id="auth-confirm-view" style="display:none;flex-direction:column;align-items:center;gap:14px;text-align:center;padding:8px 0;">
-      <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#E8EDFF,#D5DFFF);display:flex;align-items:center;justify-content:center;">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2B55CC" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22,4 12,13 2,4"/></svg>
+    <!-- ── Email Confirmation / OTP Waiting view (hidden by default) ── -->
+    <div id="auth-confirm-view" style="display:none;flex-direction:column;align-items:center;gap:16px;text-align:center;padding:8px 0;">
+      <!-- Animated mail icon with pulsing ring -->
+      <div style="position:relative;width:64px;height:64px;">
+        <div id="confirm-pulse-ring" style="position:absolute;inset:0;border-radius:50%;border:2px solid rgba(43,85,204,0.15);animation:confirmPulse 2.4s ease-in-out infinite;"></div>
+        <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#E8EDFF,#D5DFFF);display:flex;align-items:center;justify-content:center;">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2B55CC" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22,4 12,13 2,4"/></svg>
+        </div>
       </div>
       <h2 style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;color:#0D1B36;margin:0;" data-i18n="checkEmail">Check Your Email</h2>
-      <p style="color:#5A6A84;font-size:13px;line-height:1.5;margin:0;"><span data-i18n="confirmSent">We've sent a confirmation link to</span><br/><strong id="confirm-email-display" style="color:#0D1B36;"></strong></p>
-      <p style="color:#5A6A84;font-size:12px;line-height:1.5;margin:0;padding:0 8px;" data-i18n="confirmInstructions">Click the link in your email to activate your account. Once confirmed, you'll be taken directly into Kinara.</p>
-      <div style="background:#F0F3FC;border-radius:10px;padding:12px 16px;width:100%;box-sizing:border-box;margin-top:2px;">
+      <p style="color:#5A6A84;font-size:13px;line-height:1.5;margin:0;"><span data-i18n="confirmSent">We sent a verification code to</span><br/><strong id="confirm-email-display" style="color:#0D1B36;"></strong></p>
+      <!-- 6-digit OTP input -->
+      <div style="display:flex;gap:8px;justify-content:center;margin:4px 0;">
+        <input class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="one-time-code" style="width:42px;height:50px;text-align:center;font-size:22px;font-weight:700;font-family:'JetBrains Mono',monospace;border-radius:10px;border:1.5px solid #C4CFEA;background:#F8FAFF;color:#0D1B36;outline:none;transition:border-color 0.2s,box-shadow 0.2s;box-sizing:border-box;"/>
+        <input class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" style="width:42px;height:50px;text-align:center;font-size:22px;font-weight:700;font-family:'JetBrains Mono',monospace;border-radius:10px;border:1.5px solid #C4CFEA;background:#F8FAFF;color:#0D1B36;outline:none;transition:border-color 0.2s,box-shadow 0.2s;box-sizing:border-box;"/>
+        <input class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" style="width:42px;height:50px;text-align:center;font-size:22px;font-weight:700;font-family:'JetBrains Mono',monospace;border-radius:10px;border:1.5px solid #C4CFEA;background:#F8FAFF;color:#0D1B36;outline:none;transition:border-color 0.2s,box-shadow 0.2s;box-sizing:border-box;"/>
+        <input class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" style="width:42px;height:50px;text-align:center;font-size:22px;font-weight:700;font-family:'JetBrains Mono',monospace;border-radius:10px;border:1.5px solid #C4CFEA;background:#F8FAFF;color:#0D1B36;outline:none;transition:border-color 0.2s,box-shadow 0.2s;box-sizing:border-box;"/>
+        <input class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" style="width:42px;height:50px;text-align:center;font-size:22px;font-weight:700;font-family:'JetBrains Mono',monospace;border-radius:10px;border:1.5px solid #C4CFEA;background:#F8FAFF;color:#0D1B36;outline:none;transition:border-color 0.2s,box-shadow 0.2s;box-sizing:border-box;"/>
+        <input class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off" style="width:42px;height:50px;text-align:center;font-size:22px;font-weight:700;font-family:'JetBrains Mono',monospace;border-radius:10px;border:1.5px solid #C4CFEA;background:#F8FAFF;color:#0D1B36;outline:none;transition:border-color 0.2s,box-shadow 0.2s;box-sizing:border-box;"/>
+      </div>
+      <p id="otp-error" style="display:none;color:#D9534F;font-size:12px;text-align:center;margin:-4px 0 0;"></p>
+      <button id="verify-otp-btn" disabled style="width:100%;padding:13px 0;border-radius:10px;border:none;background:#C4CFEA;color:#fff;font-size:14px;font-weight:600;cursor:not-allowed;font-family:'DM Sans',sans-serif;transition:background 0.25s,transform 0.15s;margin-top:0;" data-i18n="verifyBtn">Verify Code</button>
+      <p style="color:#5A6A84;font-size:12px;line-height:1.5;margin:0;padding:0 4px;" data-i18n="otpInstructions">Enter the 6-digit code from your email, or click the link in the message.</p>
+      <div style="display:flex;align-items:center;gap:12px;width:100%;margin:2px 0;">
+        <div style="flex:1;height:1px;background:#D8E0F5;"></div>
+      </div>
+      <div style="background:#F0F3FC;border-radius:10px;padding:12px 16px;width:100%;box-sizing:border-box;">
         <p style="color:#5A6A84;font-size:11.5px;margin:0;line-height:1.5;"><span data-i18n="didntReceive">Didn't receive it? Check your spam folder or</span> <a href="#" id="resend-confirm-link" style="color:#2B55CC;font-weight:600;text-decoration:none;" data-i18n="resendEmail">resend email</a></p>
       </div>
-      <p style="margin:4px 0 0;"><a href="#" id="back-to-signin-link" style="color:#2B55CC;font-size:13px;font-weight:600;text-decoration:none;" data-i18n="backToSignIn">Back to Sign In</a></p>
+      <p style="margin:2px 0 0;"><a href="#" id="back-to-signin-link" style="color:#2B55CC;font-size:13px;font-weight:600;text-decoration:none;" data-i18n="backToSignIn">Back to Sign In</a></p>
     </div>
   </div>
   <!-- ── Trial / Guest button ── -->

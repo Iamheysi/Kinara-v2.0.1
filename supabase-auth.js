@@ -57,8 +57,7 @@ const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
       hasAccount: 'Already have an account?',
       signInLink: 'Sign In',
       checkEmail: 'Check Your Email',
-      confirmSent: "We've sent a confirmation link to",
-      confirmInstructions: "Click the link in your email to activate your account. Once confirmed, you'll be taken directly into Kinara.",
+
       didntReceive: "Didn't receive it? Check your spam folder or",
       resendEmail: 'resend email',
       backToSignIn: 'Back to Sign In',
@@ -76,6 +75,12 @@ const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
       resent: 'Email sent!',
       resendFail: 'Resend failed — try again',
       loading: 'Loading your data…',
+      verifyBtn: 'Verify Code',
+      verifying: 'Verifying…',
+      otpInstructions: 'Enter the 6-digit code from your email, or click the link in the message.',
+      otpInvalid: 'Invalid code. Please try again.',
+      otpExpired: 'Code expired. We sent a new one — check your email.',
+      confirmSent: 'We sent a verification code to',
     },
     ru: {
       subtitle: 'Войдите, чтобы сохранять тренировки',
@@ -96,8 +101,7 @@ const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
       hasAccount: 'Уже есть аккаунт?',
       signInLink: 'Войти',
       checkEmail: 'Проверьте почту',
-      confirmSent: 'Мы отправили ссылку на',
-      confirmInstructions: 'Перейдите по ссылке в письме, чтобы активировать аккаунт. После подтверждения вы попадёте прямо в Kinara.',
+
       didntReceive: 'Не получили? Проверьте спам или',
       resendEmail: 'отправить повторно',
       backToSignIn: 'Назад ко входу',
@@ -115,6 +119,12 @@ const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
       resent: 'Письмо отправлено!',
       resendFail: 'Не удалось — попробуйте снова',
       loading: 'Загружаем данные…',
+      verifyBtn: 'Подтвердить код',
+      verifying: 'Проверяем…',
+      otpInstructions: 'Введите 6-значный код из письма или перейдите по ссылке в сообщении.',
+      otpInvalid: 'Неверный код. Попробуйте ещё раз.',
+      otpExpired: 'Код истёк. Мы отправили новый — проверьте почту.',
+      confirmSent: 'Мы отправили код подтверждения на',
     },
   };
 
@@ -405,6 +415,10 @@ const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
     } else if (view === 'confirm') {
       if (confirm) confirm.style.display = 'flex';
       if (loading) loading.textContent = t18n('subtitleConfirm');
+      clearOtpInputs();
+      showError('otp-error', '');
+      // Auto-focus first OTP digit after a brief delay
+      setTimeout(() => { const first = document.querySelector('.otp-digit'); if (first) first.focus(); }, 100);
     } else {
       if (signIn) signIn.style.display = 'flex';
       if (loading) loading.textContent = t18n('subtitle');
@@ -467,9 +481,116 @@ const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
     if (!error) setTimeout(() => { if (link) link.textContent = t18n('resendEmail'); }, 4000);
   }
 
+  // ── OTP Input Behavior ─────────────────────────────────────────────────────
+
+  function getOtpCode() {
+    return Array.from(document.querySelectorAll('.otp-digit')).map(i => i.value).join('');
+  }
+
+  function updateVerifyButton() {
+    const btn = document.getElementById('verify-otp-btn');
+    const code = getOtpCode();
+    if (btn) {
+      const ready = code.length === 6;
+      btn.disabled = !ready;
+      btn.style.background = ready ? '#2B55CC' : '#C4CFEA';
+      btn.style.cursor = ready ? 'pointer' : 'not-allowed';
+    }
+  }
+
+  function clearOtpInputs() {
+    document.querySelectorAll('.otp-digit').forEach(i => {
+      i.value = '';
+      i.classList.remove('otp-filled');
+    });
+    updateVerifyButton();
+  }
+
+  function shakeOtpInputs() {
+    document.querySelectorAll('.otp-digit').forEach(i => {
+      i.classList.remove('otp-error-shake');
+      void i.offsetWidth; // force reflow
+      i.classList.add('otp-error-shake');
+      i.style.borderColor = '#D9534F';
+    });
+    setTimeout(() => {
+      document.querySelectorAll('.otp-digit').forEach(i => {
+        i.classList.remove('otp-error-shake');
+        i.style.borderColor = '';
+      });
+    }, 600);
+  }
+
+  function setupOtpInputs() {
+    const digits = document.querySelectorAll('.otp-digit');
+    digits.forEach((input, idx) => {
+      input.addEventListener('input', () => {
+        const val = input.value.replace(/\D/g, '');
+        input.value = val.charAt(0) || '';
+        input.classList.toggle('otp-filled', !!input.value);
+        if (val && idx < digits.length - 1) digits[idx + 1].focus();
+        updateVerifyButton();
+        // Auto-verify when all 6 digits are entered
+        if (getOtpCode().length === 6) verifyOtp();
+      });
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && !input.value && idx > 0) {
+          digits[idx - 1].focus();
+          digits[idx - 1].value = '';
+          digits[idx - 1].classList.remove('otp-filled');
+          updateVerifyButton();
+        }
+      });
+      // Handle paste — spread across all inputs
+      input.addEventListener('paste', (e) => {
+        e.preventDefault();
+        const pasted = (e.clipboardData.getData('text') || '').replace(/\D/g, '').slice(0, 6);
+        pasted.split('').forEach((ch, i) => {
+          if (digits[i]) {
+            digits[i].value = ch;
+            digits[i].classList.toggle('otp-filled', true);
+          }
+        });
+        const focusIdx = Math.min(pasted.length, digits.length - 1);
+        digits[focusIdx].focus();
+        updateVerifyButton();
+        if (pasted.length === 6) verifyOtp();
+      });
+    });
+  }
+
+  async function verifyOtp() {
+    const code = getOtpCode();
+    if (code.length !== 6 || !lastSignupEmail) return;
+
+    showError('otp-error', '');
+    const btn = document.getElementById('verify-otp-btn');
+    if (btn) { btn.disabled = true; btn.textContent = t18n('verifying'); }
+
+    const { error } = await db.auth.verifyOtp({
+      email: lastSignupEmail,
+      token: code,
+      type: 'email',
+    });
+
+    if (error) {
+      shakeOtpInputs();
+      clearOtpInputs();
+      const isExpired = error.message.toLowerCase().includes('expired') || error.message.toLowerCase().includes('invalid');
+      showError('otp-error', isExpired ? t18n('otpInvalid') : error.message);
+      if (btn) { btn.disabled = true; btn.style.background = '#C4CFEA'; btn.style.cursor = 'not-allowed'; btn.textContent = t18n('verifyBtn'); }
+      // Focus first OTP input for retry
+      const first = document.querySelector('.otp-digit');
+      if (first) first.focus();
+    }
+    // On success, onAuthStateChange will fire SIGNED_IN and mount the app
+  }
+
   // ── Bind buttons on DOMContentLoaded ───────────────────────────────────────
 
   document.addEventListener('DOMContentLoaded', () => {
+    setupOtpInputs();
+
     document.getElementById('google-signin-btn')
       ?.addEventListener('click', signInWithGoogle);
     document.getElementById('email-signin-btn')
@@ -486,6 +607,8 @@ const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
       ?.addEventListener('click', (e) => { e.preventDefault(); switchView('signin'); });
     document.getElementById('resend-confirm-link')
       ?.addEventListener('click', (e) => { e.preventDefault(); resendConfirmation(); });
+    document.getElementById('verify-otp-btn')
+      ?.addEventListener('click', verifyOtp);
 
     // Allow Enter key to submit
     document.getElementById('auth-password')
