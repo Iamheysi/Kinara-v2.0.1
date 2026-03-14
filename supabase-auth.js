@@ -40,7 +40,7 @@ const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
 
   function showAuthGate() {
     const el = document.getElementById('auth-gate');
-    if (el) el.style.display = 'flex';
+    if (el) { el.style.display = 'flex'; switchView('signin'); }
   }
 
   function hideAuthGate() {
@@ -254,16 +254,24 @@ const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
     if (el) { el.textContent = msg; el.style.display = msg ? 'block' : 'none'; }
   }
 
+  let lastSignupEmail = '';
+
   function switchView(view) {
-    const signIn = document.getElementById('auth-signin-view');
-    const signUp = document.getElementById('auth-signup-view');
+    const signIn  = document.getElementById('auth-signin-view');
+    const signUp  = document.getElementById('auth-signup-view');
+    const confirm = document.getElementById('auth-confirm-view');
     const loading = document.getElementById('auth-loading');
+    if (signIn)  signIn.style.display  = 'none';
+    if (signUp)  signUp.style.display  = 'none';
+    if (confirm) confirm.style.display = 'none';
+
     if (view === 'signup') {
-      if (signIn) signIn.style.display = 'none';
       if (signUp) signUp.style.display = 'flex';
       if (loading) loading.textContent = 'Create your Kinara account';
+    } else if (view === 'confirm') {
+      if (confirm) confirm.style.display = 'flex';
+      if (loading) loading.textContent = 'Almost there!';
     } else {
-      if (signUp) signUp.style.display = 'none';
       if (signIn) signIn.style.display = 'flex';
       if (loading) loading.textContent = 'Sign in to sync your workouts';
     }
@@ -288,9 +296,12 @@ const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
   }
 
   async function signUpWithEmail() {
-    const email = document.getElementById('signup-email')?.value?.trim();
-    const pass  = document.getElementById('signup-password')?.value;
-    if (!email || !pass) { showError('signup-error', 'Please enter email and password.'); return; }
+    const email   = document.getElementById('signup-email')?.value?.trim();
+    const confirm = document.getElementById('signup-email-confirm')?.value?.trim();
+    const pass    = document.getElementById('signup-password')?.value;
+
+    if (!email || !confirm || !pass) { showError('signup-error', 'Please fill in all fields.'); return; }
+    if (email.toLowerCase() !== confirm.toLowerCase()) { showError('signup-error', 'Email addresses do not match.'); return; }
     if (pass.length < 6) { showError('signup-error', 'Password must be at least 6 characters.'); return; }
 
     showError('signup-error', '');
@@ -306,10 +317,20 @@ const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
       showError('signup-error', error.message);
       if (btn) { btn.disabled = false; btn.textContent = 'Create Account'; }
     } else {
-      showError('signup-error', '');
-      showLoading('Check your email to confirm your account, then sign in.');
-      switchView('signin');
+      lastSignupEmail = email;
+      const display = document.getElementById('confirm-email-display');
+      if (display) display.textContent = email;
+      switchView('confirm');
     }
+  }
+
+  async function resendConfirmation() {
+    if (!lastSignupEmail) return;
+    const link = document.getElementById('resend-confirm-link');
+    if (link) link.textContent = 'Sending…';
+    const { error } = await db.auth.resend({ type: 'signup', email: lastSignupEmail });
+    if (link) link.textContent = error ? 'Resend failed — try again' : 'Email sent!';
+    if (!error) setTimeout(() => { if (link) link.textContent = 'resend email'; }, 4000);
   }
 
   // ── Bind buttons on DOMContentLoaded ───────────────────────────────────────
@@ -327,11 +348,17 @@ const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
       ?.addEventListener('click', (e) => { e.preventDefault(); switchView('signup'); });
     document.getElementById('show-signin-link')
       ?.addEventListener('click', (e) => { e.preventDefault(); switchView('signin'); });
+    document.getElementById('back-to-signin-link')
+      ?.addEventListener('click', (e) => { e.preventDefault(); switchView('signin'); });
+    document.getElementById('resend-confirm-link')
+      ?.addEventListener('click', (e) => { e.preventDefault(); resendConfirmation(); });
 
     // Allow Enter key to submit
     document.getElementById('auth-password')
       ?.addEventListener('keydown', (e) => { if (e.key === 'Enter') signInWithEmail(); });
     document.getElementById('signup-password')
       ?.addEventListener('keydown', (e) => { if (e.key === 'Enter') signUpWithEmail(); });
+    document.getElementById('signup-email-confirm')
+      ?.addEventListener('keydown', (e) => { if (e.key === 'Enter') document.getElementById('signup-password')?.focus(); });
   });
 })();

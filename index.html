@@ -58,37 +58,58 @@
   </style>
 </head>
 <body>
-<div id="auth-gate" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;background:#EDF0FA;font-family:'DM Sans',sans-serif;gap:20px;">
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
-    <svg width="36" height="36" viewBox="0 0 32 32" fill="none"><path d="M16 2L30 16L16 30L2 16Z" stroke="#2B55CC" stroke-width="1.5" fill="none" opacity="0.3"/><path d="M9 14L16 8L23 14" stroke="#0D1B36" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 18L16 24L23 18" stroke="#2B55CC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="16" cy="16" r="1.8" fill="#2B55CC"/></svg>
-    <span style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;color:#0D1B36;letter-spacing:1px;">KINARA</span>
+<div id="auth-gate" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;background:linear-gradient(160deg,#E8EDFF 0%,#EDF0FA 40%,#F5F0FF 100%);font-family:'DM Sans',sans-serif;gap:0;overflow:auto;padding:24px 16px;">
+  <!-- ── Branding ── -->
+  <div style="display:flex;flex-direction:column;align-items:center;gap:6px;margin-bottom:28px;">
+    <svg width="44" height="44" viewBox="0 0 32 32" fill="none"><path d="M16 2L30 16L16 30L2 16Z" stroke="#2B55CC" stroke-width="1.5" fill="none" opacity="0.3"/><path d="M9 14L16 8L23 14" stroke="#0D1B36" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 18L16 24L23 18" stroke="#2B55CC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="16" cy="16" r="1.8" fill="#2B55CC"/></svg>
+    <span style="font-family:'Barlow Condensed',sans-serif;font-size:30px;font-weight:900;color:#0D1B36;letter-spacing:1.5px;">KINARA</span>
+    <p id="auth-loading" style="color:#5A6A84;font-size:13px;margin:0;">Sign in to sync your workouts</p>
   </div>
-  <p id="auth-loading" style="color:#5A6A84;font-size:13px;">Sign in to sync your workouts</p>
-  <!-- ── Sign In view (default) ── -->
-  <div id="auth-signin-view" style="display:flex;flex-direction:column;gap:10px;width:300px;max-width:90vw;">
-    <input id="auth-email" type="email" placeholder="Email address" autocomplete="email" style="width:100%;padding:11px 14px;border-radius:10px;border:1px solid #C4CFEA;background:#FFFFFF;color:#0D1B36;font-size:14px;font-family:'DM Sans',sans-serif;outline:none;box-sizing:border-box;"/>
-    <input id="auth-password" type="password" placeholder="Password" autocomplete="current-password" style="width:100%;padding:11px 14px;border-radius:10px;border:1px solid #C4CFEA;background:#FFFFFF;color:#0D1B36;font-size:14px;font-family:'DM Sans',sans-serif;outline:none;box-sizing:border-box;"/>
-    <p id="auth-error" style="display:none;color:#D9534F;font-size:12px;text-align:center;margin:0;"></p>
-    <button id="email-signin-btn" style="width:100%;padding:12px 0;border-radius:10px;border:none;background:#2B55CC;color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:opacity 0.2s;">Sign In</button>
-    <p style="text-align:center;font-size:13px;color:#5A6A84;margin:2px 0 0;">Don't have an account? <a href="#" id="show-signup-link" style="color:#2B55CC;font-weight:600;text-decoration:none;">Sign Up</a></p>
-    <div style="display:flex;align-items:center;gap:12px;margin:6px 0 2px;">
-      <div style="flex:1;height:1px;background:#C4CFEA;"></div>
-      <span style="color:#A8B6CC;font-size:11px;text-transform:uppercase;letter-spacing:1px;">or</span>
-      <div style="flex:1;height:1px;background:#C4CFEA;"></div>
+  <!-- ── Card wrapper ── -->
+  <div style="background:#FFFFFF;border-radius:16px;box-shadow:0 4px 24px rgba(13,27,54,0.08);padding:28px 24px;width:340px;max-width:92vw;">
+    <!-- ── Sign In view (default) ── -->
+    <div id="auth-signin-view" style="display:flex;flex-direction:column;gap:10px;">
+      <h2 style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;color:#0D1B36;margin:0 0 4px;text-align:center;">Welcome Back</h2>
+      <input id="auth-email" type="email" placeholder="Email address" autocomplete="email" style="width:100%;padding:12px 14px;border-radius:10px;border:1px solid #C4CFEA;background:#F8FAFF;color:#0D1B36;font-size:14px;font-family:'DM Sans',sans-serif;outline:none;box-sizing:border-box;transition:border-color 0.2s;"/>
+      <input id="auth-password" type="password" placeholder="Password" autocomplete="current-password" style="width:100%;padding:12px 14px;border-radius:10px;border:1px solid #C4CFEA;background:#F8FAFF;color:#0D1B36;font-size:14px;font-family:'DM Sans',sans-serif;outline:none;box-sizing:border-box;transition:border-color 0.2s;"/>
+      <p id="auth-error" style="display:none;color:#D9534F;font-size:12px;text-align:center;margin:0;"></p>
+      <button id="email-signin-btn" style="width:100%;padding:13px 0;border-radius:10px;border:none;background:#2B55CC;color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background 0.2s;margin-top:2px;">Sign In</button>
+      <p style="text-align:center;font-size:13px;color:#5A6A84;margin:4px 0 0;">Don't have an account? <a href="#" id="show-signup-link" style="color:#2B55CC;font-weight:600;text-decoration:none;">Sign Up</a></p>
+      <div style="display:flex;align-items:center;gap:12px;margin:8px 0 4px;">
+        <div style="flex:1;height:1px;background:#D8E0F5;"></div>
+        <span style="color:#A8B6CC;font-size:11px;text-transform:uppercase;letter-spacing:1px;">or</span>
+        <div style="flex:1;height:1px;background:#D8E0F5;"></div>
+      </div>
+      <button id="google-signin-btn" style="display:flex;align-items:center;justify-content:center;gap:10px;padding:12px 0;border-radius:10px;border:1px solid #D8E0F5;background:#FFFFFF;color:#0D1B36;font-size:14px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:border-color 0.2s,box-shadow 0.2s;width:100%;">
+        <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59a14.5 14.5 0 010-9.18l-7.98-6.19a24.03 24.03 0 000 21.56l7.98-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+        Continue with Google
+      </button>
     </div>
-    <button id="google-signin-btn" style="display:flex;align-items:center;justify-content:center;gap:10px;padding:11px 0;border-radius:10px;border:1px solid #C4CFEA;background:#FFFFFF;color:#0D1B36;font-size:14px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:border-color 0.2s;width:100%;">
-      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59a14.5 14.5 0 010-9.18l-7.98-6.19a24.03 24.03 0 000 21.56l7.98-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-      Continue with Google
-    </button>
+    <!-- ── Sign Up view (hidden by default) ── -->
+    <div id="auth-signup-view" style="display:none;flex-direction:column;gap:10px;">
+      <h2 style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;color:#0D1B36;margin:0 0 4px;text-align:center;">Create Your Account</h2>
+      <input id="signup-email" type="email" placeholder="Email address" autocomplete="email" style="width:100%;padding:12px 14px;border-radius:10px;border:1px solid #C4CFEA;background:#F8FAFF;color:#0D1B36;font-size:14px;font-family:'DM Sans',sans-serif;outline:none;box-sizing:border-box;transition:border-color 0.2s;"/>
+      <input id="signup-email-confirm" type="email" placeholder="Confirm email address" autocomplete="off" style="width:100%;padding:12px 14px;border-radius:10px;border:1px solid #C4CFEA;background:#F8FAFF;color:#0D1B36;font-size:14px;font-family:'DM Sans',sans-serif;outline:none;box-sizing:border-box;transition:border-color 0.2s;"/>
+      <input id="signup-password" type="password" placeholder="Password (min. 6 characters)" autocomplete="new-password" style="width:100%;padding:12px 14px;border-radius:10px;border:1px solid #C4CFEA;background:#F8FAFF;color:#0D1B36;font-size:14px;font-family:'DM Sans',sans-serif;outline:none;box-sizing:border-box;transition:border-color 0.2s;"/>
+      <p id="signup-error" style="display:none;color:#D9534F;font-size:12px;text-align:center;margin:0;"></p>
+      <button id="email-signup-btn" style="width:100%;padding:13px 0;border-radius:10px;border:none;background:#2B55CC;color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background 0.2s;margin-top:2px;">Create Account</button>
+      <p style="text-align:center;font-size:13px;color:#5A6A84;margin:4px 0 0;">Already have an account? <a href="#" id="show-signin-link" style="color:#2B55CC;font-weight:600;text-decoration:none;">Sign In</a></p>
+    </div>
+    <!-- ── Email Confirmation Sent view (hidden by default) ── -->
+    <div id="auth-confirm-view" style="display:none;flex-direction:column;align-items:center;gap:14px;text-align:center;padding:8px 0;">
+      <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#E8EDFF,#D5DFFF);display:flex;align-items:center;justify-content:center;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2B55CC" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22,4 12,13 2,4"/></svg>
+      </div>
+      <h2 style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;color:#0D1B36;margin:0;">Check Your Email</h2>
+      <p style="color:#5A6A84;font-size:13px;line-height:1.5;margin:0;">We've sent a confirmation link to<br/><strong id="confirm-email-display" style="color:#0D1B36;"></strong></p>
+      <p style="color:#5A6A84;font-size:12px;line-height:1.5;margin:0;padding:0 8px;">Click the link in your email to activate your account. Once confirmed, you'll be taken directly into Kinara.</p>
+      <div style="background:#F0F3FC;border-radius:10px;padding:12px 16px;width:100%;box-sizing:border-box;margin-top:2px;">
+        <p style="color:#5A6A84;font-size:11.5px;margin:0;line-height:1.5;">Didn't receive it? Check your spam folder or <a href="#" id="resend-confirm-link" style="color:#2B55CC;font-weight:600;text-decoration:none;">resend email</a></p>
+      </div>
+      <p style="margin:4px 0 0;"><a href="#" id="back-to-signin-link" style="color:#2B55CC;font-size:13px;font-weight:600;text-decoration:none;">Back to Sign In</a></p>
+    </div>
   </div>
-  <!-- ── Sign Up view (hidden by default) ── -->
-  <div id="auth-signup-view" style="display:none;flex-direction:column;gap:10px;width:300px;max-width:90vw;">
-    <input id="signup-email" type="email" placeholder="Email address" autocomplete="email" style="width:100%;padding:11px 14px;border-radius:10px;border:1px solid #C4CFEA;background:#FFFFFF;color:#0D1B36;font-size:14px;font-family:'DM Sans',sans-serif;outline:none;box-sizing:border-box;"/>
-    <input id="signup-password" type="password" placeholder="Password (min. 6 characters)" autocomplete="new-password" style="width:100%;padding:11px 14px;border-radius:10px;border:1px solid #C4CFEA;background:#FFFFFF;color:#0D1B36;font-size:14px;font-family:'DM Sans',sans-serif;outline:none;box-sizing:border-box;"/>
-    <p id="signup-error" style="display:none;color:#D9534F;font-size:12px;text-align:center;margin:0;"></p>
-    <button id="email-signup-btn" style="width:100%;padding:12px 0;border-radius:10px;border:none;background:#2B55CC;color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:opacity 0.2s;">Create Account</button>
-    <p style="text-align:center;font-size:13px;color:#5A6A84;margin:2px 0 0;">Already have an account? <a href="#" id="show-signin-link" style="color:#2B55CC;font-weight:600;text-decoration:none;">Sign In</a></p>
-  </div>
+  <p style="color:#A8B6CC;font-size:11px;margin-top:20px;">Kinara v7 — Your workout companion</p>
 </div>
 <div id="root"></div>
 <script type="text/babel">
