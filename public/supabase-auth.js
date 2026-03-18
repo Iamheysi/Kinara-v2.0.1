@@ -221,6 +221,7 @@
     window.__kinaraGuest = true;
     window.__kinaraUserEmail = null;
     window.__kinaraGuestLang = authLang;
+    appMounted = true;
     mountReact({});
   }
 
@@ -382,23 +383,41 @@
       if (!appMounted) {
         appMounted = true;
 
-        if (event === 'INITIAL_SESSION') {
-          // Returning user (page reload) — mount instantly from localStorage
-          // cache so the dashboard appears without any loading screen.
-          // Fresh Supabase data is fetched in the background.
+        if (event === 'SIGNED_IN') {
+          // Fresh sign-in — no localStorage cache yet, wait for cloud data.
+          const data = await loadUserData(session.user.id);
+          mountReact(data);
+        } else {
+          // INITIAL_SESSION or TOKEN_REFRESHED on reload — mount instantly
+          // from localStorage cache, refresh from Supabase in background.
           mountReact({});
           loadUserData(session.user.id).then(freshData => {
             if (typeof window.__kinaraRefresh === 'function') {
               window.__kinaraRefresh(freshData);
             }
           });
-        } else {
-          // Fresh sign-in — no localStorage cache yet, wait for cloud data.
-          const data = await loadUserData(session.user.id);
-          mountReact(data);
         }
+      } else {
+        // App already mounted (e.g. from localStorage fast-path below) —
+        // a TOKEN_REFRESHED fired after the session was validated.
+        // Run background refresh so cloud data eventually arrives.
+        loadUserData(session.user.id).then(freshData => {
+          if (typeof window.__kinaraRefresh === 'function') {
+            window.__kinaraRefresh(freshData);
+          }
+        });
       }
     } else if (event === 'SIGNED_OUT' || event === 'INITIAL_SESSION') {
+      // INITIAL_SESSION with no user: token is expired and being refreshed
+      // in background.  If we have cached app data, mount from it instantly
+      // instead of flashing the auth gate.  TOKEN_REFRESHED will fire later
+      // with the valid session and trigger a background data refresh above.
+      if (event === 'INITIAL_SESSION' && !appMounted && localStorage.getItem('kinara_v7')) {
+        appMounted = true;
+        mountReact({});
+        return;
+      }
+
       currentUserId = null;
       window.__kinaraUserEmail = null;
       appMounted = false;
