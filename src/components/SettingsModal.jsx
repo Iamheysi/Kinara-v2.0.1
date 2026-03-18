@@ -1,4 +1,4 @@
-import { Ic } from '../icons.js';
+import { Ic } from '../icons.jsx';
 
 export function SettingsModal({open,onClose,theme,setTheme,lang,setLang,onExport,onImport,c,t}){
   if(!open)return null;

@@ -1,4 +1,4 @@
-import { Ic } from '../icons.js';
+import { Ic } from '../icons.jsx';
 
 export function BottomNav({tab,setTab,running,c,t}){
   const items=[{id:"home",icon:Ic.home,label:t.dashboard},{id:"plans",icon:Ic.plans,label:t.plans},{id:"log",icon:Ic.log,label:t.logWorkout},{id:"calendar",icon:Ic.cal,label:t.calendar},{id:"progress",icon:Ic.progress,label:t.progress},{id:"profile",icon:Ic.user,label:t.profile}];

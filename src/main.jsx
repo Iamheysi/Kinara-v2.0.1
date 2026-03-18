@@ -1,12 +1,19 @@
-import { createRoot } from 'react-dom/client';
-import App from './App.jsx';
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import './styles/global.css'
+import App from './App'
+import ErrorBoundary from './components/ErrorBoundary'
 
-// Expose mountApp for supabase-auth.js to call after authentication
+// Called by supabase-auth.js once authentication is resolved
 window.__mountApp = () => {
-  const root = createRoot(document.getElementById('root'));
-  root.render(<App />);
-};
+  createRoot(document.getElementById('root')).render(
+    <StrictMode>
+      <ErrorBoundary>
+        <App />
+      </ErrorBoundary>
+    </StrictMode>
+  )
+}
 
-// If auth resolved before this module loaded (fast session restore),
-// trigger mount immediately
-if (window.__kinaraReady) window.__mountApp();
+// If auth resolved before Vite bundle loaded (unlikely but safe)
+if (window.__kinaraReady) window.__mountApp()

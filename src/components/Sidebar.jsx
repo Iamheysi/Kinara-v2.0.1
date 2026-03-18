@@ -1,4 +1,4 @@
-import { Ic } from '../icons.js';
+import { Ic } from '../icons.jsx';
 import { LogoMark } from './LogoMark.jsx';
 
 export function Sidebar({tab,setTab,running,streak,profileName,profilePhoto,c,t,onOpenSettings}){

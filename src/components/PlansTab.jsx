@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Ic } from '../icons.js';
+import { Ic } from '../icons.jsx';
 import { DARK } from '../constants.js';
 import { getPlanBg } from '../utils.js';
 

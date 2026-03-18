@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Ic } from '../icons.js';
+import { Ic } from '../icons.jsx';
 import { localDateStr, getUpNextDays, getThisWeekMonday, DOW_SHORT } from '../utils.js';
 
 function WeekDayRow({day,pid,plans,isFirst,editMode,setSchedule,onSelectPlan,c,t}){

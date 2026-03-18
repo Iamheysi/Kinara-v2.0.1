@@ -1,4 +1,4 @@
-import { Ic } from '../icons.js';
+import { Ic } from '../icons.jsx';
 import { StatCard } from './StatCard.jsx';
 import { UpNextWidget } from './UpNextWidget.jsx';
 import { calcStreak, localDateStr } from '../utils.js';

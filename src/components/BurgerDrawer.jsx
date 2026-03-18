@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Ic } from '../icons.js';
+import { Ic } from '../icons.jsx';
 import { LogoMark } from './LogoMark.jsx';
 
 export function BurgerDrawer({open,onClose,onOpenSettings,onOpenHelp,streak,profileName,setProfileName,profilePhoto,c,t}){

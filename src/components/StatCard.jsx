@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Ic } from '../icons.js';
+import { Ic } from '../icons.jsx';
 
 export function StatCard({label,value,unit,accent,info,c}){
   const [open,setOpen]=useState(false);
