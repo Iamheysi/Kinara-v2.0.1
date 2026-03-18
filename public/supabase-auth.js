@@ -188,6 +188,7 @@
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: true,
+      flowType: 'pkce',
     },
   });
   let currentUserId = null;
@@ -420,6 +421,24 @@
       showAuthGate();
     }
   });
+
+  // ── PKCE fallback: exchange ?code= if detectSessionInUrl missed it ──────────
+
+  (async function handlePkceCode() {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    if (!code) return;
+
+    // Clean the URL so the code isn't reused on refresh
+    const cleanUrl = window.location.origin + window.location.pathname;
+    window.history.replaceState({}, '', cleanUrl);
+
+    try {
+      await db.auth.exchangeCodeForSession(code);
+    } catch (e) {
+      console.error('[Kinara] PKCE code exchange failed:', e);
+    }
+  })();
 
   // ── Google Sign-In ────────────────────────────────────────────────────────────
 
