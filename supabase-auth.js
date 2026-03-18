@@ -403,9 +403,12 @@ if (typeof SUPA_URL === 'undefined' || typeof SUPA_KEY === 'undefined') {
       // Mount app on first valid session, regardless of event type.
       // This covers INITIAL_SESSION, SIGNED_IN, and TOKEN_REFRESHED (in case
       // the initial event fires before the app is mounted).
+      // appMounted is set BEFORE the async call to prevent a race condition
+      // where a second auth event fires during loadUserData and triggers a
+      // double-mount (two React roots on the same element breaks interaction).
       if (!appMounted) {
-        const data = await loadUserData(session.user.id);
         appMounted = true;
+        const data = await loadUserData(session.user.id);
         mountReact(data);
       }
     } else if (event === 'SIGNED_OUT' || event === 'INITIAL_SESSION') {
