@@ -28,9 +28,16 @@ if (typeof SUPA_URL === 'undefined' || typeof SUPA_KEY === 'undefined') {
     return;
   }
 
-  const db = createClient(SUPA_URL, SUPA_KEY);
+  const db = createClient(SUPA_URL, SUPA_KEY, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+    },
+  });
   let currentUserId = null;
   let signingOut = false;
+  let appMounted = false;
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -351,6 +358,7 @@ if (typeof SUPA_URL === 'undefined' || typeof SUPA_KEY === 'undefined') {
   window.__kinaraSignOut = async () => {
     if (window.__kinaraGuest) { location.reload(); return; }
     signingOut = true;
+    appMounted = false;
     await flushPendingSync();      // save any unsaved data before signing out
     currentUserId = null;
     await db.auth.signOut();
@@ -376,6 +384,9 @@ if (typeof SUPA_URL === 'undefined' || typeof SUPA_KEY === 'undefined') {
   }
 
   db.auth.onAuthStateChange(async (event, session) => {
+    // Ignore everything while signing out — we'll reload the page anyway
+    if (signingOut) return;
+
     if (session?.user) {
       currentUserId = session.user.id;
       window.__kinaraUserEmail = session.user.email || null;
@@ -389,14 +400,22 @@ if (typeof SUPA_URL === 'undefined' || typeof SUPA_KEY === 'undefined') {
       // Email is now confirmed (or was never required) — proceed
       awaitingEmailConfirm = false;
 
-      if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+      // Mount app on first valid session, regardless of event type.
+      // This covers INITIAL_SESSION, SIGNED_IN, and TOKEN_REFRESHED (in case
+      // the initial event fires before the app is mounted).
+      if (!appMounted) {
         const data = await loadUserData(session.user.id);
+        appMounted = true;
         mountReact(data);
       }
-    } else {
+    } else if (event === 'SIGNED_OUT' || event === 'INITIAL_SESSION') {
+      // Only show auth gate on explicit sign-out or when there is truly
+      // no session on first load.  Transient TOKEN_REFRESHED events with a
+      // null session (rare) should NOT kick the user out.
       currentUserId = null;
       window.__kinaraUserEmail = null;
-      if (!signingOut) showAuthGate();
+      appMounted = false;
+      showAuthGate();
     }
   });
 
