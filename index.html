@@ -158,6 +158,11 @@
   </div>
   <p style="color:#A8B6CC;font-size:11px;margin-top:16px;">Kinara v.0.7.0</p>
 </div>
+<script>
+// Returning users: hide auth gate instantly (before paint) to prevent flash.
+// supabase-auth.js will re-show it if the session turns out to be invalid.
+if(localStorage.getItem('kinara_v7'))document.getElementById('auth-gate').style.display='none';
+</script>
 <div id="root"></div>
 <script type="module" src="/src/main.jsx"></script>
 </body>

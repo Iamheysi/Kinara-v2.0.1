@@ -370,6 +370,19 @@
     }
   }
 
+  // Returning-user fast path: the inline <script> in index.html already hid the
+  // auth gate synchronously (before paint) when kinara_v7 exists.  We mount
+  // React as early as possible from that localStorage cache.  Supabase data is
+  // always refreshed in the background via __kinaraRefresh.
+
+  const hasLocalCache = !!localStorage.getItem('kinara_v7');
+
+  // If we have cached data, mount React immediately — don't wait for Supabase.
+  if (hasLocalCache) {
+    appMounted = true;
+    mountReact({});
+  }
+
   db.auth.onAuthStateChange(async (event, session) => {
     if (signingOut) return;
 
@@ -381,26 +394,12 @@
       awaitingEmailConfirm = false;
 
       if (!appMounted) {
+        // Fresh sign-in — wait for cloud data before mounting.
         appMounted = true;
-
-        if (event === 'SIGNED_IN') {
-          // Fresh sign-in — no localStorage cache yet, wait for cloud data.
-          const data = await loadUserData(session.user.id);
-          mountReact(data);
-        } else {
-          // INITIAL_SESSION or TOKEN_REFRESHED on reload — mount instantly
-          // from localStorage cache, refresh from Supabase in background.
-          mountReact({});
-          loadUserData(session.user.id).then(freshData => {
-            if (typeof window.__kinaraRefresh === 'function') {
-              window.__kinaraRefresh(freshData);
-            }
-          });
-        }
+        const data = await loadUserData(session.user.id);
+        mountReact(data);
       } else {
-        // App already mounted (e.g. from localStorage fast-path below) —
-        // a TOKEN_REFRESHED fired after the session was validated.
-        // Run background refresh so cloud data eventually arrives.
+        // App already mounted from localStorage cache — refresh in background.
         loadUserData(session.user.id).then(freshData => {
           if (typeof window.__kinaraRefresh === 'function') {
             window.__kinaraRefresh(freshData);
@@ -408,16 +407,12 @@
         });
       }
     } else if (event === 'SIGNED_OUT' || event === 'INITIAL_SESSION') {
-      // INITIAL_SESSION with no user: token is expired and being refreshed
-      // in background.  If we have cached app data, mount from it instantly
-      // instead of flashing the auth gate.  TOKEN_REFRESHED will fire later
-      // with the valid session and trigger a background data refresh above.
-      if (event === 'INITIAL_SESSION' && !appMounted && localStorage.getItem('kinara_v7')) {
-        appMounted = true;
-        mountReact({});
+      if (appMounted && event === 'INITIAL_SESSION') {
+        // Already mounted from cache — token is being refreshed in background.
+        // TOKEN_REFRESHED will fire later with the valid session.
         return;
       }
-
+      // Truly signed out (or first visit) — show auth gate.
       currentUserId = null;
       window.__kinaraUserEmail = null;
       appMounted = false;
