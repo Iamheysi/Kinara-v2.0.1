@@ -1,11 +1,15 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // supabase-auth.js  —  Kinara / Workout Hub  (add BEFORE React/Babel scripts)
 // ─────────────────────────────────────────────────────────────────────────────
-// SETUP: Replace the two placeholders below with the Supabase project values.
+// SETUP: Create a config.js file (see config.example.js) that defines:
+//   const SUPA_URL = 'https://YOUR_PROJECT_REF.supabase.co';
+//   const SUPA_KEY = 'YOUR_ANON_KEY_HERE';
+// config.js must be loaded BEFORE this script.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const SUPA_URL = 'https://rivnhmnseyeqocpdatfj.supabase.co';      // e.g. https://xxxx.supabase.co
-const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJpdm5obW5zZXllcW9jcGRhdGZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNDQ3OTgsImV4cCI6MjA4ODkyMDc5OH0.lKEMitwo4_rq9fKKxwa0yy9VY_wxFpwy2i_pbj5T91M'; // starts with "eyJ..."
+if (typeof SUPA_URL === 'undefined' || typeof SUPA_KEY === 'undefined') {
+  console.error('[Kinara] config.js not loaded. Copy config.example.js → config.js and add your Supabase credentials.');
+}
 
 // ── Actual table schemas ──────────────────────────────────────────────────────
 //
@@ -24,9 +28,16 @@ const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
     return;
   }
 
-  const db = createClient(SUPA_URL, SUPA_KEY);
+  const db = createClient(SUPA_URL, SUPA_KEY, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+    },
+  });
   let currentUserId = null;
   let signingOut = false;
+  let appMounted = false;
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -347,6 +358,7 @@ const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
   window.__kinaraSignOut = async () => {
     if (window.__kinaraGuest) { location.reload(); return; }
     signingOut = true;
+    appMounted = false;
     await flushPendingSync();      // save any unsaved data before signing out
     currentUserId = null;
     await db.auth.signOut();
@@ -372,6 +384,9 @@ const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
   }
 
   db.auth.onAuthStateChange(async (event, session) => {
+    // Ignore everything while signing out — we'll reload the page anyway
+    if (signingOut) return;
+
     if (session?.user) {
       currentUserId = session.user.id;
       window.__kinaraUserEmail = session.user.email || null;
@@ -385,14 +400,22 @@ const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
       // Email is now confirmed (or was never required) — proceed
       awaitingEmailConfirm = false;
 
-      if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+      // Mount app on first valid session, regardless of event type.
+      // This covers INITIAL_SESSION, SIGNED_IN, and TOKEN_REFRESHED (in case
+      // the initial event fires before the app is mounted).
+      if (!appMounted) {
         const data = await loadUserData(session.user.id);
+        appMounted = true;
         mountReact(data);
       }
-    } else {
+    } else if (event === 'SIGNED_OUT' || event === 'INITIAL_SESSION') {
+      // Only show auth gate on explicit sign-out or when there is truly
+      // no session on first load.  Transient TOKEN_REFRESHED events with a
+      // null session (rare) should NOT kick the user out.
       currentUserId = null;
       window.__kinaraUserEmail = null;
-      if (!signingOut) showAuthGate();
+      appMounted = false;
+      showAuthGate();
     }
   });
 

@@ -1,0 +1,19 @@
+# Supabase / app configuration (contains API keys)
+config.js
+
+# Environment files
+.env
+.env.*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# Node (for future use)
+node_modules/
