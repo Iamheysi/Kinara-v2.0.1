@@ -175,8 +175,10 @@
     return;
   }
 
-  if (typeof SUPA_URL === 'undefined' || typeof SUPA_KEY === 'undefined') {
-    console.error('[Kinara] config.js not loaded. Copy config.example.js → config.js and add your Supabase credentials.');
+  if (typeof SUPA_URL === 'undefined' || typeof SUPA_KEY === 'undefined' || !SUPA_URL || !SUPA_KEY) {
+    console.error('[Kinara] Supabase credentials missing. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your environment.');
+    showCdnError();
+    return;
   }
 
   // ── Supabase client ──────────────────────────────────────────────────────────
