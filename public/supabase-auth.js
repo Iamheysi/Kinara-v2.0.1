@@ -369,34 +369,6 @@
     }
   }
 
-  // ── Fast-path for returning users ──────────────────────────────────────────
-  // getSession() returns the cached session from localStorage instantly (no
-  // network call).  If a session exists we mount React right away with empty
-  // cloud data — App.jsx will read from its own localStorage cache (kinara_v7)
-  // so the dashboard appears instantly.  Fresh Supabase data is fetched in the
-  // background and pushed into React via window.__kinaraRefresh.
-
-  (async () => {
-    try {
-      const { data: { session } } = await db.auth.getSession();
-      if (session?.user && !appMounted) {
-        appMounted = true;
-        currentUserId = session.user.id;
-        window.__kinaraUserEmail = session.user.email || null;
-        // Mount immediately — localStorage serves as instant cache
-        mountReact({});
-        // Background refresh from Supabase
-        loadUserData(session.user.id).then(freshData => {
-          if (typeof window.__kinaraRefresh === 'function') {
-            window.__kinaraRefresh(freshData);
-          }
-        });
-      }
-    } catch (_) {
-      // getSession failed — fall through to onAuthStateChange
-    }
-  })();
-
   db.auth.onAuthStateChange(async (event, session) => {
     if (signingOut) return;
 
@@ -407,12 +379,24 @@
       if (awaitingEmailConfirm && !session.user.email_confirmed_at) return;
       awaitingEmailConfirm = false;
 
-      // Set appMounted BEFORE the await to prevent a race condition where a
-      // second auth event during loadUserData triggers a double-mount.
       if (!appMounted) {
         appMounted = true;
-        const data = await loadUserData(session.user.id);
-        mountReact(data);
+
+        if (event === 'INITIAL_SESSION') {
+          // Returning user (page reload) — mount instantly from localStorage
+          // cache so the dashboard appears without any loading screen.
+          // Fresh Supabase data is fetched in the background.
+          mountReact({});
+          loadUserData(session.user.id).then(freshData => {
+            if (typeof window.__kinaraRefresh === 'function') {
+              window.__kinaraRefresh(freshData);
+            }
+          });
+        } else {
+          // Fresh sign-in — no localStorage cache yet, wait for cloud data.
+          const data = await loadUserData(session.user.id);
+          mountReact(data);
+        }
       }
     } else if (event === 'SIGNED_OUT' || event === 'INITIAL_SESSION') {
       currentUserId = null;
