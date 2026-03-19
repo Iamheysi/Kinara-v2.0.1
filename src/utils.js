@@ -10,11 +10,27 @@ export const detectPlateaus=(sessions)=>{const exData={};sessions.forEach(s=>s.e
 
 export const calcConsistency=(sessions,wks=8)=>{if(!sessions.length)return 0;const now=new Date();let hit=0;for(let w=0;w<wks;w++){const s=new Date(now);s.setDate(now.getDate()-(w+1)*7);const e=new Date(now);e.setDate(now.getDate()-w*7);if(sessions.some(x=>new Date(x.date)>=s&&new Date(x.date)<e))hit++;}return Math.round((hit/wks)*100);};
 
-export const getAchievements=(sessions,restDaysLog,exPRs)=>{const streak=calcStreak(sessions,restDaysLog);const totalVol=sessions.reduce((a,s)=>a+s.totalVolume,0);const weekMap={};sessions.forEach(s=>{const d=new Date(s.date);const wk=`${d.getFullYear()}-${Math.floor(d.getDate()/7)}`;weekMap[wk]=(weekMap[wk]||0)+1;});return[{id:"first",icon:"🎯",label:"First Blood",desc:"Complete your first workout",earned:sessions.length>=1},{id:"week3",icon:"📅",label:"Week Warrior",desc:"3 workouts in one week",earned:Object.values(weekMap).some(c=>c>=3)},{id:"streak7",icon:"🔥",label:"On Fire",desc:"7-day activity streak",earned:streak>=7},{id:"streak30",icon:"⚡",label:"Unstoppable",desc:"30-day streak",earned:streak>=30},{id:"pr5",icon:"🏆",label:"PR Hunter",desc:"Set 5 personal records",earned:Object.keys(exPRs).length>=5},{id:"s10",icon:"💪",label:"Dedicated",desc:"Complete 10 workouts",earned:sessions.length>=10},{id:"s50",icon:"🦁",label:"Veteran",desc:"Complete 50 workouts",earned:sessions.length>=50},{id:"vol10k",icon:"🏋️",label:"Heavy Lifter",desc:"10,000 kg total volume",earned:totalVol>=10000},{id:"pr10",icon:"👑",label:"Record Breaker",desc:"10 personal records",earned:Object.keys(exPRs).length>=10},{id:"s100",icon:"🌟",label:"Legend",desc:"Complete 100 workouts",earned:sessions.length>=100}];};
+export const getAchievements=(sessions,restDaysLog,exPRs)=>{const streak=calcStreak(sessions,restDaysLog);const totalVol=sessions.reduce((a,s)=>a+s.totalVolume,0);const weekMap={};sessions.forEach(s=>{const d=new Date(s.date);const wk=`${d.getFullYear()}-W${Math.ceil(d.getDate()/7)}`;weekMap[wk]=(weekMap[wk]||0)+1;});const maxWeekSessions=Math.max(...Object.values(weekMap),0);const prCount=Object.keys(exPRs).length;return[{id:"first",icon:"🎯",label:"First Blood",desc:"Complete your first workout",earned:sessions.length>=1,current:Math.min(sessions.length,1),target:1},{id:"week3",icon:"📅",label:"Week Warrior",desc:"3 workouts in one week",earned:maxWeekSessions>=3,current:Math.min(maxWeekSessions,3),target:3},{id:"streak7",icon:"🔥",label:"On Fire",desc:"7-day activity streak",earned:streak>=7,current:Math.min(streak,7),target:7},{id:"streak30",icon:"⚡",label:"Unstoppable",desc:"30-day streak",earned:streak>=30,current:Math.min(streak,30),target:30},{id:"pr5",icon:"🏆",label:"PR Hunter",desc:"Set 5 personal records",earned:prCount>=5,current:Math.min(prCount,5),target:5},{id:"s10",icon:"💪",label:"Dedicated",desc:"Complete 10 workouts",earned:sessions.length>=10,current:Math.min(sessions.length,10),target:10},{id:"s50",icon:"🦁",label:"Veteran",desc:"Complete 50 workouts",earned:sessions.length>=50,current:Math.min(sessions.length,50),target:50},{id:"vol10k",icon:"🏋️",label:"Heavy Lifter",desc:"10,000 kg total volume",earned:totalVol>=10000,current:Math.min(Math.round(totalVol),10000),target:10000},{id:"pr10",icon:"👑",label:"Record Breaker",desc:"10 personal records",earned:prCount>=10,current:Math.min(prCount,10),target:10},{id:"s100",icon:"🌟",label:"Legend",desc:"Complete 100 workouts",earned:sessions.length>=100,current:Math.min(sessions.length,100),target:100}];};
 
 export const getPlanBg=(panel,isDark)=>{const dm={push:`linear-gradient(145deg,#1C1210,#241608,#281408)`,pull:`linear-gradient(145deg,#121218,#141420,#161628)`,legs:`linear-gradient(145deg,#1A1010,#220E0E,#281010)`,upper:`linear-gradient(145deg,#101814,#101E14,#102414)`};const lm={push:`linear-gradient(145deg,#F5EBE6,#FAF2ED,#FFF8F5)`,pull:`linear-gradient(145deg,#EAEBF8,#EEF2FA,#F5F2FF)`,legs:`linear-gradient(145deg,#F5E8E8,#FAF0EF,#FFF5F5)`,upper:`linear-gradient(145deg,#E8F5EC,#EFF8F1,#F5FFF7)`};return(isDark?dm:lm)[panel]||(isDark?dm.push:lm.push);};
 
 export function playBeeps(){try{const ctx=new(window.AudioContext||window.webkitAudioContext)();[[0,880],[0.22,880],[0.44,1047]].forEach(([t,f])=>{const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type="sine";o.frequency.value=f;g.gain.setValueAtTime(0.35,ctx.currentTime+t);g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+t+0.18);o.start(ctx.currentTime+t);o.stop(ctx.currentTime+t+0.2);});}catch(e){}}
+
+export function autoFillRestDays(sessions,restDaysLog){
+  const actDates=new Set([...sessions.map(s=>s.date),...restDaysLog]);
+  if(actDates.size===0)return[];
+  const sorted=[...actDates].sort();
+  const firstDate=new Date(sorted[0]);
+  const today=new Date();today.setHours(0,0,0,0);
+  const newRest=[];
+  const d=new Date(firstDate);d.setDate(d.getDate()+1);
+  while(d<today){
+    const ds=localDateStr(d);
+    if(!actDates.has(ds))newRest.push(ds);
+    d.setDate(d.getDate()+1);
+  }
+  return newRest;
+}
 
 export function getThisWeekMonday(){const t=new Date();const d=t.getDay();const diff=d===0?-6:1-d;const m=new Date(t);m.setDate(t.getDate()+diff);m.setHours(0,0,0,0);return m;}
 

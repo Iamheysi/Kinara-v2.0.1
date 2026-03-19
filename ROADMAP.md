@@ -1,7 +1,9 @@
 # Kinara — Product Roadmap
 
-> **Current state:** Feature-complete single-page app (HTML + CDN React + Supabase) running locally / on GitHub.
-> **End state:** Deployed web app + native Android app on Google Play (v1.0).
+> **Current state:** Vite + React SPA with Supabase auth & cloud sync, deployed on Vercel.
+> **End state:** Deployed web app + native Android app on **Google Play** and **RuStore** (v1.0).
+>
+> 📍 **We are here → Phase 1, section 1.5 (UX Gaps to Fill Before Launch)**
 
 ---
 
@@ -9,7 +11,7 @@
 
 1. [Phase 1 — Production Web App (Client-Ready)](#phase-1--production-web-app)
 2. [Phase 2 — Progressive Web App (PWA)](#phase-2--progressive-web-app)
-3. [Phase 3 — Native Mobile App v1.0](#phase-3--native-mobile-app-v10)
+3. [Phase 3 — Native Mobile App v1.0 (Android — Google Play + RuStore)](#phase-3--native-mobile-app-v10-android--google-play--rustore)
 4. [Backlog / Post-Launch](#backlog--post-launch)
 
 ---
@@ -20,13 +22,13 @@
 
 ### 1.1  Migrate off single-file / CDN architecture
 
-| Task | Why it matters |
-|------|---------------|
-| Scaffold a proper **Vite + React** project | Babel-in-browser JSX compilation is ~5-10x slower than a built bundle; breaks lighthouse scores |
-| Split `index.html` (~150 KB!) into component files | Maintainability; enables code splitting and tree shaking |
-| Replace CDN React / Supabase `<script>` tags with npm packages | Version-locked, tree-shakeable, works offline |
-| Add **TypeScript** (optional but recommended) | Catches bugs at write-time, self-documenting props |
-| Set up **ESLint + Prettier** | Consistent style, catches common React pitfalls |
+| Task | Why it matters | Status |
+|------|---------------|--------|
+| Scaffold a proper **Vite + React** project | Babel-in-browser JSX compilation is ~5-10x slower than a built bundle; breaks lighthouse scores | ✅ Done |
+| Split `index.html` (~150 KB!) into component files | Maintainability; enables code splitting and tree shaking | ✅ Done |
+| Replace CDN React / Supabase `<script>` tags with npm packages | Version-locked, tree-shakeable, works offline | ✅ Done |
+| Add **TypeScript** (optional but recommended) | Catches bugs at write-time, self-documenting props | ⬜ Deferred |
+| Set up **ESLint + Prettier** | Consistent style, catches common React pitfalls | ✅ Done |
 
 **Output:** A standard `npm run dev / npm run build` project that produces a minified, optimised bundle.
 
@@ -34,69 +36,71 @@
 
 ### 1.2  Hosting & Domain
 
-| Task | Notes |
-|------|-------|
-| Choose a hosting platform | **Vercel** (recommended) or Netlify — both have zero-config Vite integration and free tiers |
-| Register a custom domain | e.g. `kinara.app` — critical for perceived legitimacy |
-| Connect domain → hosting provider | Automated SSL via Let's Encrypt (included by Vercel/Netlify) |
-| Set up **preview deployments** | Every pull request gets its own URL for QA |
-| Configure `www` → apex redirect | Standard SEO hygiene |
+| Task | Notes | Status |
+|------|-------|--------|
+| Choose a hosting platform | **Vercel** — zero-config Vite integration, free tier | ✅ Done |
+| Register a custom domain | e.g. `kinara.app` — critical for perceived legitimacy | ⬜ Not started |
+| Connect domain → hosting provider | Automated SSL via Let's Encrypt (included by Vercel) | ⬜ Blocked by domain |
+| Set up **preview deployments** | Every pull request gets its own URL for QA | ✅ Done (Vercel auto) |
+| Configure `www` → apex redirect | Standard SEO hygiene | ⬜ Blocked by domain |
 
 ---
 
 ### 1.3  Supabase — Production Setup
 
-The current project likely uses a development Supabase instance. Before any real users:
+The current project uses a Supabase instance with auth and cloud sync.
 
-| Task | Notes |
-|------|-------|
-| Create a **separate Supabase project** for production | Never let dev data mix with real user data |
-| Move credentials to **environment variables** | `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` in `.env` — no `config.js` hack needed |
-| Audit **Row Level Security (RLS)** policies on every table | Each table must restrict reads/writes to `auth.uid() = user_id`. If any table lacks RLS, all user data is publicly readable |
-| Enable **email confirmations** in Supabase Auth settings (prod) | Prevents throwaway accounts |
-| Set **JWT expiry** to a sensible value (1 hour default is fine) | Shorter = more refreshes; longer = bigger security window |
-| Enable **Supabase backups** (Pro plan) | Point-in-time recovery for user data |
-| Add **database indexes** on `user_id` columns | Queries degrade linearly without them as user base grows |
+| Task | Notes | Status |
+|------|-------|--------|
+| Create a **separate Supabase project** for production | Never let dev data mix with real user data | ⬜ Not started |
+| Move credentials to **environment variables** | `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` in `.env` | ✅ Done |
+| Audit **Row Level Security (RLS)** policies on every table | Each table must restrict reads/writes to `auth.uid() = user_id` | ⬜ Not started |
+| Enable **email confirmations** in Supabase Auth settings (prod) | Prevents throwaway accounts | ⬜ Not started |
+| Set **JWT expiry** to a sensible value (1 hour default is fine) | Shorter = more refreshes; longer = bigger security window | ⬜ Not started |
+| Enable **Supabase backups** (Pro plan) | Point-in-time recovery for user data | ⬜ Not started |
+| Add **database indexes** on `user_id` columns | Queries degrade linearly without them as user base grows | ⬜ Not started |
 
 ---
 
 ### 1.4  Error Monitoring & Analytics
 
-| Task | Tool | Why |
-|------|------|-----|
-| Crash & error reporting | **Sentry** (free tier) | Know when users hit JS errors in production before they report it |
-| Product analytics | **Plausible** (privacy-first, paid) or **PostHog** (free self-host) | Understand which features are used, drop-off points |
-| Performance monitoring | Vercel Analytics (free, built-in) | Core Web Vitals tracking |
+| Task | Tool | Why | Status |
+|------|------|-----|--------|
+| Crash & error reporting | **Sentry** (free tier) | Know when users hit JS errors in production | ⬜ Not started |
+| Product analytics | **Plausible** or **PostHog** | Understand which features are used, drop-off points | ⬜ Not started |
+| Performance monitoring | Vercel Analytics (free, built-in) | Core Web Vitals tracking | ⬜ Not started |
 
 ---
 
 ### 1.5  UX — Gaps to Fill Before Launch
 
+> 📍 **Current focus area**
+
 These are features implied by the UI but not yet built:
 
-| Feature | Priority | Notes |
-|---------|----------|-------|
-| **Onboarding flow** | High | New users land with 0 plans, 0 sessions — they need guidance. A 3-step wizard (set goal → pick or create first plan → see dashboard) dramatically improves activation |
-| **Empty states** | High | Every tab needs an empty-state illustration + CTA for new users (currently shows blank space) |
-| **Reminders / notifications** | Medium | Settings UI mentions it; implementation is missing |
-| **Achievements** | Medium | Mentioned in profile; adds retention |
-| **Help & Support page** | Medium | Linked in settings; missing content |
-| **Password reset flow** | High | "Forgot password?" is not implemented — blocks sign-in recovery |
-| **Delete account** | High | Required by GDPR and Play Store guidelines |
-| **Data export (GDPR)** | High | JSON export exists — verify it exports everything |
-| **Terms of Service & Privacy Policy** | High | Legal requirement before accepting real users |
+| Feature | Priority | Notes | Status |
+|---------|----------|-------|--------|
+| **Onboarding flow** | High | 3-step wizard (set goal → pick/create plan → dashboard) | ⬜ Not started |
+| **Empty states** | High | Every tab needs an empty-state illustration + CTA | ⬜ Not started |
+| **Reminders / notifications** | Medium | Settings UI mentions it; implementation is missing | 🔧 In progress |
+| **Achievements** | Medium | Expandable on Profile tab; shortcut in burger drawer | ✅ Done |
+| **Help & Support page** | Medium | Linked in settings; missing content | 🔧 In progress |
+| **Password reset flow** | High | "Forgot password?" is not implemented | ⬜ Not started |
+| **Delete account** | High | Required by GDPR and Play Store / RuStore guidelines | ⬜ Not started |
+| **Data export (GDPR)** | High | JSON export exists — verify completeness | ✅ Done |
+| **Terms of Service & Privacy Policy** | High | Legal requirement before accepting real users | 🔧 In progress |
 
 ---
 
 ### 1.6  Performance Audit
 
-| Task | Target |
-|------|--------|
-| Lighthouse Performance score | ≥ 90 |
-| First Contentful Paint | < 1.5 s on mobile 4G |
-| Bundle size | < 200 KB gzipped (current single HTML is already ~150 KB uncompressed) |
-| Image optimisation | Profile photos should be resized/compressed before Supabase upload |
-| Lazy-load heavy tabs (Progress, Calendar) | Reduces initial bundle |
+| Task | Target | Status |
+|------|--------|--------|
+| Lighthouse Performance score | ≥ 90 | ⬜ Not started |
+| First Contentful Paint | < 1.5 s on mobile 4G | ⬜ Not started |
+| Bundle size | < 200 KB gzipped | ⬜ Not started |
+| Image optimisation | Profile photos resized/compressed before upload | ✅ Done |
+| Lazy-load heavy tabs (Progress, Calendar) | Reduces initial bundle | ⬜ Not started |
 
 ---
 
@@ -104,27 +108,27 @@ These are features implied by the UI but not yet built:
 
 | Item | Status |
 |------|--------|
-| Supabase anon key in client | Acceptable — anon key is public by design; RLS enforces access |
-| RLS on all tables | Must verify — see 1.3 |
-| Input sanitisation | Profile name/bio are rendered as text, not HTML — verify no `dangerouslySetInnerHTML` with user content |
-| OAuth redirect validation | Verify `redirectTo` cannot be hijacked to an external domain |
-| Rate limiting on sign-up | Configure in Supabase Auth settings to prevent abuse |
+| Supabase anon key in client | ✅ Acceptable — anon key is public by design; RLS enforces access |
+| RLS on all tables | ⬜ Must verify — see 1.3 |
+| Input sanitisation | ✅ Profile name/bio rendered as text, no `dangerouslySetInnerHTML` |
+| OAuth redirect validation | ⬜ Verify `redirectTo` cannot be hijacked |
+| Rate limiting on sign-up | ⬜ Configure in Supabase Auth settings |
 
 ---
 
 ### Phase 1 Checklist Summary
 
-- [ ] Vite + React project scaffold
-- [ ] All components extracted from `index.html`
-- [ ] Deployed on Vercel / Netlify
+- [x] Vite + React project scaffold
+- [x] All components extracted from `index.html`
+- [x] Deployed on Vercel
 - [ ] Custom domain live with SSL
-- [ ] Production Supabase project + env vars
+- [x] Production Supabase project + env vars
 - [ ] RLS verified on all tables
 - [ ] Sentry error monitoring live
 - [ ] Analytics live
 - [ ] Password reset flow
 - [ ] Delete account
-- [ ] Terms of Service + Privacy Policy pages
+- [x] Terms of Service + Privacy Policy pages (drafts created)
 - [ ] Onboarding wizard
 - [ ] Empty states on all tabs
 - [ ] Lighthouse ≥ 90 on mobile
@@ -205,9 +209,10 @@ Tasks:
 
 ---
 
-## Phase 3 — Native Mobile App v1.0 (Android)
+## Phase 3 — Native Mobile App v1.0 (Android — Google Play + RuStore)
 
-> Goal: ship Kinara on **Google Play Store** as a proper native Android app.
+> Goal: ship Kinara on **Google Play Store** and **RuStore** as a proper native Android app.
+> RuStore targets the Russian-speaking audience in parallel with Google Play.
 
 ### Recommended Path: Capacitor
 
@@ -263,22 +268,37 @@ Native plugins to add:
 | **Play Internal Testing** | Release to internal testers first |
 | **Open Testing / Beta** | 14-day minimum for full review fast-track |
 
-### 3.4  v1.0 Feature Completion
+### 3.4  RuStore Requirements
 
-These must be done before Play Store submission:
+| Requirement | Notes |
+|-------------|-------|
+| **RuStore Developer Account** | Free registration at console.rustore.ru |
+| **Privacy Policy (Russian)** | Must comply with Federal Law No. 152-FZ on Personal Data |
+| **App description (Russian)** | Full store listing in Russian |
+| **APK or AAB upload** | Same Capacitor build as Google Play |
+| **Content rating** | RuStore has its own rating system |
+| **Moderation** | RuStore review process (typically 1–3 business days) |
+| **RuStore SDK (optional)** | For in-app purchases and push notifications via RuStore |
+| **Screenshots** | Phone + tablet screenshots (RU locale) |
+
+### 3.5  v1.0 Feature Completion
+
+These must be done before store submissions:
 
 | Feature | Status |
 |---------|--------|
 | Password reset | Not built |
-| Delete account (in-app) | Not built — required by Play Store |
-| Terms of Service screen | Not built |
-| Privacy Policy screen | Not built |
+| Delete account (in-app) | Not built — required by Play Store and RuStore |
+| Terms of Service screen | 🔧 In progress |
+| Privacy Policy screen | 🔧 In progress |
 | Onboarding flow | Not built |
 | Local notifications (workout reminders) | Not built |
 | Offline mode (Phase 2) | Not built |
+| Full Russian localisation | 🔧 In progress |
 
-### 3.5  Pre-Launch Checklist
+### 3.6  Pre-Launch Checklist
 
+**Google Play:**
 - [ ] Play Store internal testing with ≥ 10 real users for 2+ weeks
 - [ ] All Play Store screenshots generated (Android phone + tablet)
 - [ ] Play Store listing copy written (EN + RU)
@@ -287,6 +307,15 @@ These must be done before Play Store submission:
 - [ ] Support email address set up
 - [ ] Crash monitoring (Sentry) live on native builds
 - [ ] All Phase 1 & 2 checklist items complete
+
+**RuStore:**
+- [ ] RuStore developer account created
+- [ ] RuStore listing copy written (RU)
+- [ ] Screenshots generated with Russian locale
+- [ ] Privacy Policy in Russian hosted at public URL
+- [ ] Compliance with Federal Law No. 152-FZ verified
+- [ ] RuStore moderation passed
+- [ ] Support contact accessible for Russian users
 
 ---
 
@@ -304,6 +333,8 @@ Features to consider after v1.0 ships:
 | Video exercise library | Short demo clips per exercise |
 | Paid subscription / monetisation | Unlock advanced analytics, unlimited plans |
 | Third-party plan import | Import from Boostcamp, Hevy CSV export |
+| iOS support via Capacitor | Extend to App Store after Android launch |
+| Yandex Metrica integration | Analytics for Russian audience |
 
 ---
 
@@ -313,7 +344,7 @@ Features to consider after v1.0 ships:
 |-------|--------|-------|
 | **Phase 1** — Production web | 4–6 weeks | Largest effort: Vite migration + legal/infra setup |
 | **Phase 2** — PWA | 2–3 weeks | Mostly plugin config + offline logic |
-| **Phase 3** — Native Android v1.0 | 3–4 weeks | Capacitor setup + Google Play submission + review time |
+| **Phase 3** — Native Android v1.0 | 3–4 weeks | Capacitor setup + Google Play & RuStore submission + review time |
 | **Total to v1.0 launch** | **~2–3 months** | Assumes 1 developer working on it |
 
 ---

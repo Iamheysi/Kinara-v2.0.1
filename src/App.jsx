@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { DARK, LIGHT, TR, DEFAULT_PLANS, DEFAULT_SCHEDULE } from './constants.js';
-import { localDateStr, calcStreak, playBeeps } from './utils.js';
+import { localDateStr, calcStreak, playBeeps, autoFillRestDays } from './utils.js';
 import { LogoMark } from './components/LogoMark.jsx';
 import { Toast } from './components/Toast.jsx';
 import { Sidebar } from './components/Sidebar.jsx';
@@ -16,6 +16,9 @@ import { RestTab } from './components/RestTab.jsx';
 import { CalendarTab } from './components/CalendarTab.jsx';
 import { ProgressTab } from './components/ProgressTab.jsx';
 import { ProfileTab } from './components/ProfileTab.jsx';
+import { HelpSupportModal } from './components/HelpSupportModal.jsx';
+import { PrivacyPolicy } from './components/PrivacyPolicy.jsx';
+import { TermsOfService } from './components/TermsOfService.jsx';
 
 const FONTS=`@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;600;700;800;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap');`;
 
@@ -27,6 +30,12 @@ function App(){
   const [sessions,setSessions]=useState([]);const [restDaysLog,setRestDaysLog]=useState([]);
   const [activeWorkout,setActiveWorkout]=useState(null);const [pendingPlanId,setPendingPlanId]=useState(null);
   const [bannerDismissed,setBannerDismissed]=useState(false);
+  const [autoRestEnabled,setAutoRestEnabled]=useState(false);
+  const [reminderEnabled,setReminderEnabled]=useState(false);
+  const [reminderTime,setReminderTime]=useState("18:00");
+  const [showHelp,setShowHelp]=useState(false);
+  const [showPrivacy,setShowPrivacy]=useState(false);
+  const [showTerms,setShowTerms]=useState(false);
   const [selectedMonth,setSelectedMonth]=useState(new Date());const [selectedDay,setSelectedDay]=useState(null);
   const [showPR,setShowPR]=useState(null);const [toast,setToast]=useState(null);
   const [dataLoaded,setDataLoaded]=useState(false);
@@ -48,6 +57,9 @@ function App(){
       if(saved.profileBio!==undefined)setProfileBio(saved.profileBio);
       if(saved.profileGoal)setProfileGoal(saved.profileGoal);
       if(saved.profilePhoto!==undefined)setProfilePhoto(saved.profilePhoto);
+      if(saved.autoRestEnabled)setAutoRestEnabled(saved.autoRestEnabled);
+      if(saved.reminderEnabled)setReminderEnabled(saved.reminderEnabled);
+      if(saved.reminderTime)setReminderTime(saved.reminderTime);
     }catch(e){}
     setDataLoaded(true);
 
@@ -71,9 +83,9 @@ function App(){
   useEffect(()=>{
     if(!dataLoaded||window.__kinaraGuest)return;
     try{
-      localStorage.setItem('kinara_v7',JSON.stringify({sessions,restDaysLog,plans,schedule,theme,lang,profileName,profileBio,profileGoal,profilePhoto}));
+      localStorage.setItem('kinara_v7',JSON.stringify({sessions,restDaysLog,plans,schedule,theme,lang,profileName,profileBio,profileGoal,profilePhoto,autoRestEnabled,reminderEnabled,reminderTime}));
     }catch(e){}
-  },[sessions,restDaysLog,plans,schedule,theme,lang,profileName,profileBio,profileGoal,profilePhoto,dataLoaded]);
+  },[sessions,restDaysLog,plans,schedule,theme,lang,profileName,profileBio,profileGoal,profilePhoto,autoRestEnabled,reminderEnabled,reminderTime,dataLoaded]);
 
   // ── Cloud sync to Supabase (debounced via supabase-auth.js) ───────────
   useEffect(()=>{
@@ -85,6 +97,15 @@ function App(){
     window.__kinaraSave('profile',{profileName,profileBio,profileGoal,profilePhoto,theme,lang});
   },[sessions,restDaysLog,plans,schedule,theme,lang,profileName,profileBio,profileGoal,profilePhoto,dataLoaded]);
 
+  // Auto-fill rest days for gaps when enabled
+  /* eslint-disable react-hooks/exhaustive-deps */
+  useEffect(()=>{
+    if(!dataLoaded||!autoRestEnabled)return;
+    const newRest=autoFillRestDays(sessions,restDaysLog);
+    if(newRest.length>0)setRestDaysLog(prev=>[...new Set([...prev,...newRest])]);
+  },[dataLoaded,autoRestEnabled]);
+  /* eslint-enable react-hooks/exhaustive-deps */
+
   const c=theme==="dark"?DARK:LIGHT;const t=TR[lang];
   const todayStr=localDateStr();
   const streak=calcStreak(sessions,restDaysLog);
@@ -95,7 +116,7 @@ function App(){
   const showToast=(msg,type="success")=>{setToast({msg,type});setTimeout(()=>setToast(null),3000);};
   const exportData=()=>{const d={sessions,plans,restDaysLog,schedule,theme,lang,profileName,profileBio,profileGoal,profilePhoto,exportedAt:new Date().toISOString(),version:"0.7.0"};const blob=new Blob([JSON.stringify(d,null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=`kinara-backup-${todayStr}.json`;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);};
   const handleImportFile=(e)=>{const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=(ev)=>{try{const d=JSON.parse(ev.target.result);if(Array.isArray(d.sessions))setSessions(d.sessions);if(Array.isArray(d.plans))setPlans(d.plans);if(Array.isArray(d.restDaysLog))setRestDaysLog(d.restDaysLog);if(d.schedule)setSchedule(d.schedule);if(d.theme)setTheme(d.theme);if(d.lang)setLang(d.lang);if(d.profileName)setProfileName(d.profileName);if(d.profileBio!==undefined)setProfileBio(d.profileBio);if(d.profileGoal)setProfileGoal(d.profileGoal);if(d.profilePhoto!==undefined)setProfilePhoto(d.profilePhoto);setMenuOpen(false);setSettingsOpen(false);showToast(t.importOk);}catch{showToast(t.importFail,"error");}};reader.readAsText(file);e.target.value="";};
-  const handlePhotoUpload=(e)=>{const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=(ev)=>{const img=new Image();img.onload=()=>{const canvas=document.createElement("canvas");canvas.width=240;canvas.height=240;const ctx=canvas.getContext("2d");const sz=Math.min(img.width,img.height);const sx=(img.width-sz)/2,sy=(img.height-sz)/2;ctx.drawImage(img,sx,sy,sz,sz,0,0,240,240);setProfilePhoto(canvas.toDataURL("image/jpeg",0.82));};img.src=ev.target.result;};reader.readAsDataURL(file);e.target.value="";};
+  // Photo upload is now handled inside ProfileTab with crop preview
   const logRestDay=()=>{if(todayActivity!==null)return;setRestDaysLog(prev=>[...prev,todayStr]);};
   const undoRestDay=()=>setRestDaysLog(prev=>prev.filter(d=>d!==todayStr));
   const deletePlan=(planId)=>{if(activeWorkout?.planId===planId)setActiveWorkout(null);setPlans(p=>p.filter(x=>x.id!==planId));setSchedule(s=>{const ns={...s};Object.keys(ns).forEach(k=>{if(ns[k]===planId)ns[k]=null;});return ns;});showToast("Plan deleted");};
@@ -125,7 +146,7 @@ function App(){
 
   return(<div style={{display:"flex",height:"100vh",background:c.bg,fontFamily:"'DM Sans',sans-serif",color:c.textPrimary,overflow:"hidden",transition:"background 0.3s"}}>
     <input ref={fileInputRef} type="file" accept=".json" onChange={handleImportFile} style={{display:"none"}}/>
-    <input ref={photoInputRef} type="file" accept="image/*" onChange={handlePhotoUpload} style={{display:"none"}}/>
+    {/* Photo input is now inside ProfileTab with crop preview */}
     <Sidebar tab={tab} setTab={setTab} running={!!activeWorkout} streak={streak} profileName={profileName} profilePhoto={profilePhoto} c={c} t={t} onOpenSettings={()=>setSettingsOpen(true)}/>
     <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden"}}>
       <Header running={!!activeWorkout} time={activeWorkout?.elapsed||0} formatTime={formatTime} setTab={setTab} menuOpen={menuOpen} setMenuOpen={setMenuOpen} c={c} t={t}/>
@@ -133,18 +154,21 @@ function App(){
       {todayActivity===null&&!bannerDismissed&&!activeWorkout&&(<div style={{background:`linear-gradient(to right,${c.primaryDim},transparent)`,borderBottom:`1px solid ${c.primary}22`,padding:"8px 26px",display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0,gap:8}}><p style={{fontSize:12,color:c.textSecondary,flex:1,minWidth:0}}>{t.noActivityToday} <span style={{color:c.primaryLight}}>{t.restStreakNote}</span></p><div style={{display:"flex",gap:7,flexShrink:0}}><button onClick={()=>{logRestDay();setTab("rest");}} style={{background:c.primary,color:"#fff",border:"none",borderRadius:7,padding:"5px 12px",fontSize:12,fontWeight:600,fontFamily:"'DM Sans',sans-serif",cursor:"pointer",whiteSpace:"nowrap"}}>{t.logRestDay}</button><button onClick={()=>setBannerDismissed(true)} style={{background:"none",border:`1px solid ${c.border}`,color:c.textMuted,borderRadius:7,padding:"5px 9px",fontSize:11.5,cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>{t.dismiss}</button></div></div>)}
       <div style={{flex:1,overflow:"auto",padding:"28px 32px"}} className="tab-content kb-main-pad" key={tab}>
         {tab==="home"&&<HomeTab c={c} t={t} setTab={setTab} running={!!activeWorkout} sessions={sessions} restDaysLog={restDaysLog} todayActivity={todayActivity} logRestDay={logRestDay} plans={plans} schedule={schedule} setSchedule={setSchedule} onSelectPlan={selectPlanForWorkout}/>}
-        {tab==="plans"&&<PlansTab c={c} t={t} theme={theme} plans={plans} setPlans={setPlans} onStart={startWorkout} onDeletePlan={deletePlan}/>}
+        {tab==="plans"&&<PlansTab c={c} t={t} theme={theme} plans={plans} setPlans={setPlans} onStart={startWorkout} onDeletePlan={deletePlan} showToast={showToast}/>}
         {tab==="log"&&<LogTab c={c} t={t} activeWorkout={activeWorkout} setActiveWorkout={setActiveWorkout} plans={plans} onStart={startWorkout} checkSet={checkSet} updateSet={updateSet} finishWorkout={finishWorkout} allSetsDone={allSetsDone} formatTime={formatTime} fmtMin={fmtMin} todayActivity={todayActivity} defaultPlanId={pendingPlanId}/>}
-        {tab==="rest"&&<RestTab c={c} t={t} todayActivity={todayActivity} onLogRest={logRestDay} onUndoRest={undoRestDay} activeWorkout={!!activeWorkout}/>}
-        {tab==="calendar"&&<CalendarTab c={c} t={t} sessions={sessions} setSessions={setSessions} selectedMonth={selectedMonth} setSelectedMonth={setSelectedMonth} selectedDay={selectedDay} setSelectedDay={setSelectedDay} restDaysLog={restDaysLog}/>}
-        {tab==="progress"&&<ProgressTab c={c} t={t} sessions={sessions}/>}
-        {tab==="profile"&&<ProfileTab c={c} t={t} sessions={sessions} restDaysLog={restDaysLog} plans={plans} profileName={profileName} setProfileName={setProfileName} profileBio={profileBio} setProfileBio={setProfileBio} profileGoal={profileGoal} setProfileGoal={setProfileGoal} profilePhoto={profilePhoto} setProfilePhoto={setProfilePhoto} photoInputRef={photoInputRef}/>}
+        {tab==="rest"&&<RestTab c={c} t={t} lang={lang} todayActivity={todayActivity} onLogRest={logRestDay} onUndoRest={undoRestDay} activeWorkout={!!activeWorkout} onOverrideRest={()=>{undoRestDay();setTab("log");}}/>}
+        {tab==="calendar"&&<CalendarTab c={c} t={t} lang={lang} sessions={sessions} setSessions={setSessions} selectedMonth={selectedMonth} setSelectedMonth={setSelectedMonth} selectedDay={selectedDay} setSelectedDay={setSelectedDay} restDaysLog={restDaysLog}/>}
+        {tab==="progress"&&<ProgressTab c={c} t={t} sessions={sessions} lang={lang}/>}
+        {tab==="profile"&&<ProfileTab c={c} t={t} sessions={sessions} restDaysLog={restDaysLog} plans={plans} profileName={profileName} setProfileName={setProfileName} profileBio={profileBio} setProfileBio={setProfileBio} profileGoal={profileGoal} setProfileGoal={setProfileGoal} profilePhoto={profilePhoto} setProfilePhoto={setProfilePhoto} photoInputRef={photoInputRef} showToast={showToast}/>}
       </div>
     </div>
     <BottomNav tab={tab} setTab={setTab} running={!!activeWorkout} c={c} t={t}/>
-    <BurgerDrawer open={menuOpen} onClose={()=>setMenuOpen(false)} onOpenSettings={()=>setSettingsOpen(true)} onOpenHelp={()=>{}} streak={streak} profileName={profileName} setProfileName={setProfileName} profilePhoto={profilePhoto} c={c} t={t}/>
-    <SettingsModal open={settingsOpen} onClose={()=>setSettingsOpen(false)} theme={theme} setTheme={setTheme} lang={lang} setLang={setLang} onExport={exportData} onImport={()=>fileInputRef.current?.click()} c={c} t={t}/>
+    <BurgerDrawer open={menuOpen} onClose={()=>setMenuOpen(false)} onOpenSettings={()=>setSettingsOpen(true)} onOpenHelp={()=>setShowHelp(true)} setTab={setTab} streak={streak} profileName={profileName} setProfileName={setProfileName} profilePhoto={profilePhoto} c={c} t={t}/>
+    <SettingsModal open={settingsOpen} onClose={()=>setSettingsOpen(false)} theme={theme} setTheme={setTheme} lang={lang} setLang={setLang} onExport={exportData} onImport={()=>fileInputRef.current?.click()} autoRestEnabled={autoRestEnabled} setAutoRestEnabled={setAutoRestEnabled} reminderEnabled={reminderEnabled} setReminderEnabled={setReminderEnabled} reminderTime={reminderTime} setReminderTime={setReminderTime} onOpenPrivacy={()=>{setSettingsOpen(false);setShowPrivacy(true);}} onOpenTerms={()=>{setSettingsOpen(false);setShowTerms(true);}} c={c} t={t}/>
     {showPR&&<PRModal prs={showPR} onClose={()=>setShowPR(null)} c={c} t={t}/>}
+    <HelpSupportModal open={showHelp} onClose={()=>setShowHelp(false)} c={c} lang={lang}/>
+    <PrivacyPolicy open={showPrivacy} onClose={()=>setShowPrivacy(false)} c={c} lang={lang}/>
+    <TermsOfService open={showTerms} onClose={()=>setShowTerms(false)} c={c} lang={lang}/>
     <Toast msg={toast?.msg} type={toast?.type} c={c}/>
   </div>);
 }
