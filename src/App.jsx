@@ -19,6 +19,8 @@ import { ProfileTab } from './components/ProfileTab.jsx';
 import { HelpSupportModal } from './components/HelpSupportModal.jsx';
 import { PrivacyPolicy } from './components/PrivacyPolicy.jsx';
 import { TermsOfService } from './components/TermsOfService.jsx';
+import { AchievementsModal } from './components/AchievementsModal.jsx';
+import { getAchievements } from './utils.js';
 
 const FONTS=`@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;600;700;800;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap');`;
 
@@ -36,6 +38,7 @@ function App(){
   const [showHelp,setShowHelp]=useState(false);
   const [showPrivacy,setShowPrivacy]=useState(false);
   const [showTerms,setShowTerms]=useState(false);
+  const [showAchievements,setShowAchievements]=useState(false);
   const [selectedMonth,setSelectedMonth]=useState(new Date());const [selectedDay,setSelectedDay]=useState(null);
   const [showPR,setShowPR]=useState(null);const [toast,setToast]=useState(null);
   const [dataLoaded,setDataLoaded]=useState(false);
@@ -112,15 +115,20 @@ function App(){
   const todayWorkout=sessions.some(s=>s.date===todayStr);
   const todayRest=restDaysLog.includes(todayStr);
   const todayActivity=todayWorkout?"workout":todayRest?"rest":null;
+  const exPRs={};sessions.forEach(s=>s.exercises.forEach(ex=>{const max=Math.max(...ex.sets.map(s2=>parseFloat(s2.weight)||0),0);if(max>0&&(!exPRs[ex.name]||max>exPRs[ex.name]))exPRs[ex.name]=max;}));
+  const achievements=getAchievements(sessions,restDaysLog,exPRs);
 
   const showToast=(msg,type="success")=>{setToast({msg,type});setTimeout(()=>setToast(null),3000);};
-  const exportData=()=>{const d={sessions,plans,restDaysLog,schedule,theme,lang,profileName,profileBio,profileGoal,profilePhoto,exportedAt:new Date().toISOString(),version:"0.7.0"};const blob=new Blob([JSON.stringify(d,null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=`kinara-backup-${todayStr}.json`;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);};
+  const exportData=()=>{const d={sessions,plans,restDaysLog,schedule,theme,lang,profileName,profileBio,profileGoal,profilePhoto,exportedAt:new Date().toISOString(),version:"0.7.1"};const blob=new Blob([JSON.stringify(d,null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=`kinara-backup-${todayStr}.json`;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);};
   const handleImportFile=(e)=>{const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=(ev)=>{try{const d=JSON.parse(ev.target.result);if(Array.isArray(d.sessions))setSessions(d.sessions);if(Array.isArray(d.plans))setPlans(d.plans);if(Array.isArray(d.restDaysLog))setRestDaysLog(d.restDaysLog);if(d.schedule)setSchedule(d.schedule);if(d.theme)setTheme(d.theme);if(d.lang)setLang(d.lang);if(d.profileName)setProfileName(d.profileName);if(d.profileBio!==undefined)setProfileBio(d.profileBio);if(d.profileGoal)setProfileGoal(d.profileGoal);if(d.profilePhoto!==undefined)setProfilePhoto(d.profilePhoto);setMenuOpen(false);setSettingsOpen(false);showToast(t.importOk);}catch{showToast(t.importFail,"error");}};reader.readAsText(file);e.target.value="";};
   // Photo upload is now handled inside ProfileTab with crop preview
   const logRestDay=()=>{if(todayActivity!==null)return;setRestDaysLog(prev=>[...prev,todayStr]);};
   const undoRestDay=()=>setRestDaysLog(prev=>prev.filter(d=>d!==todayStr));
   const deletePlan=(planId)=>{if(activeWorkout?.planId===planId)setActiveWorkout(null);setPlans(p=>p.filter(x=>x.id!==planId));setSchedule(s=>{const ns={...s};Object.keys(ns).forEach(k=>{if(ns[k]===planId)ns[k]=null;});return ns;});showToast("Plan deleted");};
   const selectPlanForWorkout=(planId)=>{setPendingPlanId(planId);setTab("log");};
+  const resetProgress=()=>{setSessions([]);setRestDaysLog([]);setActiveWorkout(null);showToast(lang==="ru"?"Прогресс сброшен":"Progress reset");};
+  const clearAllData=()=>{setSessions([]);setRestDaysLog([]);setPlans(DEFAULT_PLANS);setSchedule(DEFAULT_SCHEDULE);setProfileName("My Profile");setProfileBio("");setProfileGoal("general");setProfilePhoto(null);setAutoRestEnabled(false);setReminderEnabled(false);setReminderTime("18:00");setActiveWorkout(null);try{localStorage.removeItem('kinara_v7');}catch(e){}showToast(lang==="ru"?"Данные очищены":"All data cleared");};
+  const deleteAccount=async()=>{clearAllData();if(window.__kinaraDeleteAccount){try{await window.__kinaraDeleteAccount();}catch(e){}}if(window.__kinaraSignOut)window.__kinaraSignOut();showToast(lang==="ru"?"Аккаунт удалён":"Account deleted");};
 
   useEffect(()=>{if(activeWorkout&&!activeWorkout.paused){timerRef.current=setInterval(()=>setActiveWorkout(w=>w?{...w,elapsed:w.elapsed+1}:w),1000);}else clearInterval(timerRef.current);return()=>clearInterval(timerRef.current);},[!!activeWorkout,activeWorkout?.paused]);
   useEffect(()=>{if(!activeWorkout?.restTimer||activeWorkout.paused)return;const iv=setInterval(()=>{setActiveWorkout(w=>{if(!w?.restTimer||w.paused)return w;const rem=w.restTimer.remaining-1;if(rem<=0){playBeeps();return{...w,restTimer:null};}return{...w,restTimer:{...w.restTimer,remaining:rem}};});},1000);return()=>clearInterval(iv);},[activeWorkout?.restTimer?.remaining,activeWorkout?.paused]);
@@ -156,19 +164,20 @@ function App(){
         {tab==="home"&&<HomeTab c={c} t={t} setTab={setTab} running={!!activeWorkout} sessions={sessions} restDaysLog={restDaysLog} todayActivity={todayActivity} logRestDay={logRestDay} plans={plans} schedule={schedule} setSchedule={setSchedule} onSelectPlan={selectPlanForWorkout}/>}
         {tab==="plans"&&<PlansTab c={c} t={t} theme={theme} plans={plans} setPlans={setPlans} onStart={startWorkout} onDeletePlan={deletePlan} showToast={showToast}/>}
         {tab==="log"&&<LogTab c={c} t={t} activeWorkout={activeWorkout} setActiveWorkout={setActiveWorkout} plans={plans} onStart={startWorkout} checkSet={checkSet} updateSet={updateSet} finishWorkout={finishWorkout} allSetsDone={allSetsDone} formatTime={formatTime} fmtMin={fmtMin} todayActivity={todayActivity} defaultPlanId={pendingPlanId}/>}
-        {tab==="rest"&&<RestTab c={c} t={t} lang={lang} todayActivity={todayActivity} onLogRest={logRestDay} onUndoRest={undoRestDay} activeWorkout={!!activeWorkout} onOverrideRest={()=>{undoRestDay();setTab("log");}}/>}
+        {tab==="rest"&&<RestTab c={c} t={t} lang={lang} todayActivity={todayActivity} onLogRest={logRestDay} onUndoRest={undoRestDay} activeWorkout={!!activeWorkout} onOverrideRest={()=>{undoRestDay();setTab("log");}} autoRestEnabled={autoRestEnabled} setAutoRestEnabled={setAutoRestEnabled} restDaysLog={restDaysLog} sessions={sessions} streak={streak}/>}
         {tab==="calendar"&&<CalendarTab c={c} t={t} lang={lang} sessions={sessions} setSessions={setSessions} selectedMonth={selectedMonth} setSelectedMonth={setSelectedMonth} selectedDay={selectedDay} setSelectedDay={setSelectedDay} restDaysLog={restDaysLog}/>}
         {tab==="progress"&&<ProgressTab c={c} t={t} sessions={sessions} lang={lang}/>}
-        {tab==="profile"&&<ProfileTab c={c} t={t} sessions={sessions} restDaysLog={restDaysLog} plans={plans} profileName={profileName} setProfileName={setProfileName} profileBio={profileBio} setProfileBio={setProfileBio} profileGoal={profileGoal} setProfileGoal={setProfileGoal} profilePhoto={profilePhoto} setProfilePhoto={setProfilePhoto} photoInputRef={photoInputRef} showToast={showToast}/>}
+        {tab==="profile"&&<ProfileTab c={c} t={t} lang={lang} sessions={sessions} restDaysLog={restDaysLog} plans={plans} profileName={profileName} setProfileName={setProfileName} profileBio={profileBio} setProfileBio={setProfileBio} profileGoal={profileGoal} setProfileGoal={setProfileGoal} profilePhoto={profilePhoto} setProfilePhoto={setProfilePhoto} photoInputRef={photoInputRef} showToast={showToast} achievements={achievements} onOpenAchievements={()=>setShowAchievements(true)}/>}
       </div>
     </div>
     <BottomNav tab={tab} setTab={setTab} running={!!activeWorkout} c={c} t={t}/>
-    <BurgerDrawer open={menuOpen} onClose={()=>setMenuOpen(false)} onOpenSettings={()=>setSettingsOpen(true)} onOpenHelp={()=>setShowHelp(true)} setTab={setTab} streak={streak} profileName={profileName} setProfileName={setProfileName} profilePhoto={profilePhoto} c={c} t={t}/>
-    <SettingsModal open={settingsOpen} onClose={()=>setSettingsOpen(false)} theme={theme} setTheme={setTheme} lang={lang} setLang={setLang} onExport={exportData} onImport={()=>fileInputRef.current?.click()} autoRestEnabled={autoRestEnabled} setAutoRestEnabled={setAutoRestEnabled} reminderEnabled={reminderEnabled} setReminderEnabled={setReminderEnabled} reminderTime={reminderTime} setReminderTime={setReminderTime} onOpenPrivacy={()=>{setSettingsOpen(false);setShowPrivacy(true);}} onOpenTerms={()=>{setSettingsOpen(false);setShowTerms(true);}} c={c} t={t}/>
+    <BurgerDrawer open={menuOpen} onClose={()=>setMenuOpen(false)} onOpenSettings={()=>setSettingsOpen(true)} onOpenHelp={()=>setShowHelp(true)} onOpenPrivacy={()=>{setMenuOpen(false);setShowPrivacy(true);}} onOpenTerms={()=>{setMenuOpen(false);setShowTerms(true);}} onOpenAchievements={()=>{setMenuOpen(false);setShowAchievements(true);}} setTab={setTab} streak={streak} profileName={profileName} setProfileName={setProfileName} profilePhoto={profilePhoto} c={c} t={t}/>
+    <SettingsModal open={settingsOpen} onClose={()=>setSettingsOpen(false)} theme={theme} setTheme={setTheme} lang={lang} setLang={setLang} onExport={exportData} onImport={()=>fileInputRef.current?.click()} autoRestEnabled={autoRestEnabled} setAutoRestEnabled={setAutoRestEnabled} reminderEnabled={reminderEnabled} setReminderEnabled={setReminderEnabled} reminderTime={reminderTime} setReminderTime={setReminderTime} onOpenPrivacy={()=>{setSettingsOpen(false);setShowPrivacy(true);}} onOpenTerms={()=>{setSettingsOpen(false);setShowTerms(true);}} onResetProgress={resetProgress} onClearData={clearAllData} onDeleteAccount={deleteAccount} c={c} t={t}/>
     {showPR&&<PRModal prs={showPR} onClose={()=>setShowPR(null)} c={c} t={t}/>}
     <HelpSupportModal open={showHelp} onClose={()=>setShowHelp(false)} c={c} lang={lang}/>
     <PrivacyPolicy open={showPrivacy} onClose={()=>setShowPrivacy(false)} c={c} lang={lang}/>
     <TermsOfService open={showTerms} onClose={()=>setShowTerms(false)} c={c} lang={lang}/>
+    <AchievementsModal open={showAchievements} onClose={()=>setShowAchievements(false)} achievements={achievements} c={c} lang={lang}/>
     <Toast msg={toast?.msg} type={toast?.type} c={c}/>
   </div>);
 }

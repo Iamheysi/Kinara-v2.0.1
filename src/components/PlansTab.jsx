@@ -4,12 +4,12 @@ import { DARK } from '../constants.js';
 import { getPlanBg } from '../utils.js';
 
 const PRESET_IMAGES=[
-  {id:"chest",label:"Chest",gradient:"linear-gradient(135deg,#2A1A14 0%,#3D2418 40%,#4A2A1A 100%)"},
-  {id:"back",label:"Back",gradient:"linear-gradient(135deg,#141A2A 0%,#182440 40%,#1A2A50 100%)"},
-  {id:"legs",label:"Legs",gradient:"linear-gradient(135deg,#2A1418 0%,#3D1820 40%,#4A1A24 100%)"},
-  {id:"shoulders",label:"Shoulders",gradient:"linear-gradient(135deg,#1A2A1A 0%,#203820 40%,#244A24 100%)"},
-  {id:"arms",label:"Arms",gradient:"linear-gradient(135deg,#2A1A2A 0%,#3D2040 40%,#4A244A 100%)"},
-  {id:"full",label:"Full Body",gradient:"linear-gradient(135deg,#1A1A2A 0%,#242040 40%,#2A2A50 100%)"},
+  {id:"chest",label:"Chest",gradient:"linear-gradient(135deg,#8B4513 0%,#A0522D 30%,#CD853F 70%,#D2691E 100%)"},
+  {id:"back",label:"Back",gradient:"linear-gradient(135deg,#1B2838 0%,#2C4A6E 30%,#3B6BA5 70%,#1B3A5C 100%)"},
+  {id:"legs",label:"Legs",gradient:"linear-gradient(135deg,#5B0E2D 0%,#8B1A3A 30%,#A52A4A 70%,#6B1530 100%)"},
+  {id:"shoulders",label:"Shoulders",gradient:"linear-gradient(135deg,#1A4D2E 0%,#2D7A4A 30%,#3D9B5F 70%,#1A5C35 100%)"},
+  {id:"arms",label:"Arms",gradient:"linear-gradient(135deg,#3B1F6E 0%,#5B3A9E 30%,#7B52C4 70%,#4A2888 100%)"},
+  {id:"full",label:"Full Body",gradient:"linear-gradient(135deg,#1A1A3E 0%,#2D2D6B 30%,#3D3D8B 70%,#252560 100%)"},
 ];
 
 export function PlansTab({c,t,theme,plans,setPlans,onStart,onDeletePlan,showToast}){
@@ -52,7 +52,7 @@ export function PlansTab({c,t,theme,plans,setPlans,onStart,onDeletePlan,showToas
     const cardBg=plan.image?`url(${plan.image}) center/cover`:plan.presetBg||getPlanBg(plan.panel,isDark);
     const saveAndExit=()=>{setEditMode(false);if(showToast)showToast(t.woSession||"Saved!");};
 
-    return(<div style={{maxWidth:680}}>
+    return(<div style={{maxWidth:880,margin:"0 auto"}}>
       <input ref={imgInputRef} type="file" accept="image/*" onChange={handleCardImage} style={{display:"none"}}/>
       <button onClick={()=>{setSelected(null);setEditMode(false);setConfirmDelDetail(false);setShowImagePicker(false);}} style={{background:"none",border:"none",color:c.textSecondary,cursor:"pointer",fontSize:13,marginBottom:14,display:"flex",alignItems:"center",gap:6,fontFamily:"'DM Sans',sans-serif"}}>{t.backToPlans}</button>
       <div style={{position:"relative",height:140,borderRadius:18,overflow:"hidden",marginBottom:20,background:cardBg}}>
@@ -76,7 +76,7 @@ export function PlansTab({c,t,theme,plans,setPlans,onStart,onDeletePlan,showToas
       {showImagePicker&&editMode&&(<div style={{background:c.card,border:`1px solid ${c.border}`,borderRadius:12,padding:"14px 16px",marginBottom:14}}>
         <p style={{fontSize:12,fontWeight:600,color:c.textPrimary,marginBottom:10}}>{t.chooseImage||"Choose Card Image"}</p>
         <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:10}}>
-          {PRESET_IMAGES.map(p=>(<button key={p.id} onClick={()=>setPresetImage(p.gradient)} style={{height:50,borderRadius:8,background:p.gradient,border:`1px solid ${c.border}`,cursor:"pointer",display:"flex",alignItems:"flex-end",padding:"4px 8px"}}><span style={{fontSize:9,color:"rgba(255,255,255,0.6)"}}>{p.label}</span></button>))}
+          {PRESET_IMAGES.map(p=>(<button key={p.id} onClick={()=>setPresetImage(p.gradient)} style={{height:60,borderRadius:10,background:p.gradient,border:`2px solid ${c.border}`,cursor:"pointer",display:"flex",alignItems:"flex-end",padding:"0 10px 8px",boxShadow:"inset 0 -20px 30px rgba(0,0,0,0.3)",transition:"transform 0.15s, border-color 0.15s"}}><span style={{fontSize:11,fontWeight:600,color:"#fff",textShadow:"0 1px 4px rgba(0,0,0,0.7)",fontFamily:"'DM Sans',sans-serif"}}>{p.label}</span></button>))}
         </div>
         <button onClick={()=>imgInputRef.current?.click()} style={{width:"100%",background:c.surface,border:`1px solid ${c.border}`,borderRadius:8,padding:"8px",fontSize:12,color:c.textSecondary,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>{Ic.image} {t.uploadPhoto||"Upload Image"}</button>
         {plan.image&&<button onClick={()=>setPlans(p=>p.map((x,i)=>i===selected?{...x,image:null,presetBg:null}:x))} style={{width:"100%",marginTop:6,background:"none",border:`1px solid ${c.border}`,borderRadius:8,padding:"6px",fontSize:11,color:c.textMuted,cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>{t.removeImage||"Remove Image"}</button>}
@@ -87,16 +87,16 @@ export function PlansTab({c,t,theme,plans,setPlans,onStart,onDeletePlan,showToas
     </div>);
   }
 
-  return(<div style={{maxWidth:820}}>
+  return(<div style={{maxWidth:1100,margin:"0 auto"}}>
     <div style={{display:"flex",alignItems:"flex-end",justifyContent:"space-between",marginBottom:20}}><div><p style={{fontSize:10,color:c.primary,letterSpacing:1.8,textTransform:"uppercase",fontWeight:700,marginBottom:3}}>{t.myPlans}</p><h2 style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:38,fontWeight:900,color:c.textPrimary}}>{t.trainingPlans}</h2></div><button onClick={()=>{setPlans(p=>[...p,{id:Date.now(),name:"New Plan",panel:"upper",accent:"clay",warmup:{enabled:true,duration:300},notes:"",exercises:[]}]);setSelected(plans.length);setEditMode(true);}} style={{background:c.primary,color:"#fff",border:"none",borderRadius:10,padding:"10px 18px",fontSize:13,fontWeight:800,fontFamily:"'Barlow Condensed',sans-serif",cursor:"pointer",boxShadow:`0 3px 12px ${c.primary}44`}}>{t.newPlan}</button></div>
-    <div className="kb-plans-grid" style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:14}}>
+    <div className="kb-plans-grid" style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:14}}>
       {plans.map((p,i)=>{const acc=accentOf(p);const isConfirming=confirmDelId===p.id;const cardBg=p.image?`url(${p.image}) center/cover`:p.presetBg||getPlanBg(p.panel,isDark);return(<div key={p.id} className="kb-card-hover" onClick={()=>!isConfirming&&setSelected(i)} style={{background:c.card,border:`1px solid ${isConfirming?"#B05050":c.border}`,borderRadius:16,overflow:"hidden",cursor:isConfirming?"default":"pointer",transition:"all 0.2s",boxShadow:"0 2px 10px rgba(0,0,0,0.08)"}}>
         <div style={{position:"relative",height:110,background:cardBg,overflow:"hidden"}}>
           {!p.image&&<svg style={{position:"absolute",right:0,top:0,opacity:isDark?0.08:0.2}} width="160" height="110" viewBox="0 0 160 110"><circle cx="130" cy="55" r="45" stroke={acc} strokeWidth="1" fill="none"/></svg>}
-          <div style={{position:"absolute",inset:0,background:p.image?"linear-gradient(to top,rgba(0,0,0,0.65) 0%,transparent 55%)":isDark?"linear-gradient(to bottom,transparent 25%,rgba(0,0,0,0.85))":"linear-gradient(to bottom,transparent 25%,rgba(255,255,255,0.6))"}}/>
+          <div style={{position:"absolute",inset:0,background:p.image?"linear-gradient(to top,rgba(0,0,0,0.65) 0%,transparent 55%)":isDark?"linear-gradient(to bottom,transparent 20%,rgba(0,0,0,0.75))":"linear-gradient(to bottom,transparent 20%,rgba(0,0,0,0.4))"}}/>
           <div style={{position:"absolute",bottom:8,left:14,right:14}}>
-            <h3 style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:21,fontWeight:900,color:p.image?"#fff":pTxt}}>{p.name}</h3>
-            {p.notes&&<p style={{fontSize:10.5,color:p.image?"rgba(255,255,255,0.6)":pSub,marginTop:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.notes}</p>}
+            <h3 style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:21,fontWeight:900,color:"#fff"}}>{p.name}</h3>
+            {p.notes&&<p style={{fontSize:10.5,color:"rgba(255,255,255,0.6)",marginTop:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.notes}</p>}
           </div>
           <div style={{position:"absolute",top:7,right:7,width:6,height:6,borderRadius:"50%",background:acc,boxShadow:`0 0 6px ${acc}`}}/>
         </div>

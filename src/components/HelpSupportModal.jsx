@@ -42,10 +42,10 @@ export function HelpSupportModal({open,onClose,c,lang}){
       <p style={{fontSize:9.5,color:c.textMuted,letterSpacing:1.8,fontWeight:700,textTransform:"uppercase",marginBottom:10}}>{isRu?"Связаться с нами":"Contact Us"}</p>
       <div style={{background:c.surface,border:`1px solid ${c.border}`,borderRadius:11,padding:"14px 16px"}}>
         <p style={{fontSize:13,color:c.textPrimary,marginBottom:4}}>{isRu?"Напишите нам":"Email us"}</p>
-        <p style={{fontSize:12,color:c.primary,fontFamily:"'JetBrains Mono',monospace"}}>support@kinara.app</p>
+        <p style={{fontSize:12,color:c.primary,fontFamily:"'JetBrains Mono',monospace"}}>kinarasupport@gmail.com</p>
         <p style={{fontSize:11,color:c.textMuted,marginTop:8}}>{isRu?"Мы обычно отвечаем в течение 24 часов.":"We typically respond within 24 hours."}</p>
       </div>
-      <p style={{fontSize:10,color:c.textMuted,textAlign:"center",marginTop:16}}>Kinara v0.7.0</p>
+      <p style={{fontSize:10,color:c.textMuted,textAlign:"center",marginTop:16}}>Kinara v0.7.1</p>
     </div>
   </div>);
 }
