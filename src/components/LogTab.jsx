@@ -12,7 +12,7 @@ export function LogTab({c,t,activeWorkout,setActiveWorkout,plans,onStart,checkSe
   const totalSets=w.exercises.reduce((a,e)=>a+e.sets.length,0);const doneSets=w.exercises.reduce((a,e)=>a+e.sets.filter(s=>s.done).length,0);const progress=(doneSets/totalSets)*100;
   const togglePause=()=>setActiveWorkout(p=>({...p,paused:!p.paused}));
   const warmupProgress=Math.min(100,(w.elapsed/w.warmup.target)*100);const warmupDone=w.elapsed>=w.warmup.target;
-  return(<div className="kb-log-grid" style={{maxWidth:860,display:"grid",gridTemplateColumns:"1fr 280px",gap:20}}>
+  return(<div className="kb-log-grid" style={{maxWidth:1100,margin:"0 auto",display:"grid",gridTemplateColumns:"1fr 280px",gap:20}}>
     <div>
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
         <div><p style={{fontSize:10,color:c.primary,letterSpacing:1.8,textTransform:"uppercase",fontWeight:700,marginBottom:3}}>{t.activeSession}</p><h2 style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:28,fontWeight:900,color:c.textPrimary}}>{w.planName}</h2></div>

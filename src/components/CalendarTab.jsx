@@ -16,7 +16,7 @@ export function CalendarTab({c,t,lang,sessions,setSessions,selectedMonth,setSele
   const isRest=d=>restDaysLog.includes(getDateStr(d));
   const goToday=()=>{const n=new Date();setSelectedMonth(new Date(n.getFullYear(),n.getMonth()));setSelectedDay(n.getDate());};
 
-  return(<div style={{maxWidth:820}}>
+  return(<div style={{maxWidth:1100,margin:"0 auto"}}>
     <div style={{display:"flex",alignItems:"flex-end",justifyContent:"space-between",marginBottom:18}}>
       <p style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:34,fontWeight:900,color:c.textPrimary}}>{t.activityCalendar}</p>
       <button onClick={goToday} style={{background:c.primaryDim,color:c.primary,border:`1px solid ${c.primary}33`,borderRadius:8,padding:"6px 14px",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>{isRu?"Сегодня":"Today"}</button>

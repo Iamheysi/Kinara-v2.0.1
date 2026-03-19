@@ -129,7 +129,7 @@ export function PrivacyPolicy({open,onClose,c,lang}){
       <p style={p}>
         If you have any questions, concerns, or requests regarding this Privacy Policy or your personal data, please contact us at:
       </p>
-      <p style={{...p,color:c.primary,fontWeight:600}}>support@kinara.app</p>
+      <p style={{...p,color:c.primary,fontWeight:600}}>kinarasupport@gmail.com</p>
     </>
   );
 
@@ -255,7 +255,7 @@ export function PrivacyPolicy({open,onClose,c,lang}){
       <p style={p}>
         Если у вас есть вопросы, замечания или запросы, касающиеся настоящей Политики конфиденциальности или обработки ваших персональных данных, свяжитесь с нами:
       </p>
-      <p style={{...p,color:c.primary,fontWeight:600}}>support@kinara.app</p>
+      <p style={{...p,color:c.primary,fontWeight:600}}>kinarasupport@gmail.com</p>
     </>
   );
 

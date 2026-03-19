@@ -91,7 +91,7 @@ export function TermsOfService({open,onClose,c,lang}){
           <P>{ru
             ?"Если у вас есть вопросы или замечания относительно настоящих Условий использования, свяжитесь с нами по электронной почте:"
             :"If you have any questions or concerns about these Terms of Service, please contact us at:"}</P>
-          <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:c.primary,margin:"0 0 20px"}}>support@kinara.app</p>
+          <p style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:c.primary,margin:"0 0 20px"}}>kinarasupport@gmail.com</p>
 
         </div>
       </div>
