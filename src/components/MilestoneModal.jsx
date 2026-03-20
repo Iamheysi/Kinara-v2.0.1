@@ -1,18 +1,19 @@
 import { useEffect, useState } from 'react';
+import { KIcon } from '../brandedIcons.jsx';
 
 const MILESTONES = {
-  1:  { emoji: '🎉', en: 'First Workout!',       ru: 'Первая тренировка!' },
-  5:  { emoji: '🔥', en: '5 Workouts Complete!',  ru: '5 тренировок!' },
-  10: { emoji: '💪', en: '10 Workouts!',           ru: '10 тренировок!' },
-  25: { emoji: '⚡', en: '25 Workouts — On Fire!', ru: '25 тренировок — огонь!' },
-  50: { emoji: '🏆', en: '50 Workouts — Legend!',  ru: '50 тренировок — легенда!' },
-  100:{ emoji: '👑', en: '100 Workouts — Elite!',  ru: '100 тренировок — элита!' },
+  1:  { icon: 'celebrate', en: 'First Workout!',       ru: 'Первая тренировка!' },
+  5:  { icon: 'fire',      en: '5 Workouts Complete!',  ru: '5 тренировок!' },
+  10: { icon: 'dumbbell',  en: '10 Workouts!',           ru: '10 тренировок!' },
+  25: { icon: 'lightning', en: '25 Workouts — On Fire!', ru: '25 тренировок — огонь!' },
+  50: { icon: 'trophy',    en: '50 Workouts — Legend!',  ru: '50 тренировок — легенда!' },
+  100:{ icon: 'crown',     en: '100 Workouts — Elite!',  ru: '100 тренировок — элита!' },
 };
 
 export function MilestoneModal({ milestone, onClose, c, lang }) {
   const [visible, setVisible] = useState(false);
   const isRu = lang === 'ru';
-  const m = MILESTONES[milestone?.count] || { emoji: '🎉', en: 'Milestone!', ru: 'Достижение!' };
+  const m = MILESTONES[milestone?.count] || { icon: 'celebrate', en: 'Milestone!', ru: 'Достижение!' };
 
   useEffect(() => {
     requestAnimationFrame(() => setVisible(true));
@@ -56,7 +57,16 @@ export function MilestoneModal({ milestone, onClose, c, lang }) {
           ))}
         </div>
 
-        <div style={{ fontSize: 64, marginBottom: 16 }}>{m.emoji}</div>
+        <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'center' }}>
+          <div style={{
+            width: 80, height: 80, borderRadius: '50%',
+            background: `radial-gradient(circle, ${c.primary}22 0%, ${c.primary}08 70%)`,
+            border: `2px solid ${c.primary}44`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            {(() => { const IconComp = KIcon[m.icon]; return IconComp ? <IconComp color={c.primary} size={40} /> : null; })()}
+          </div>
+        </div>
         <h2 style={{
           fontFamily: "'Barlow Condensed',sans-serif",
           fontSize: 28, fontWeight: 800, color: c.textPrimary,

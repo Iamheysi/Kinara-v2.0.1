@@ -1,4 +1,5 @@
 import { Ic } from '../icons.jsx';
+import { KIcon } from '../brandedIcons.jsx';
 
 export function AchievementsModal({ open, onClose, achievements, c, lang }) {
   if (!open) return null;
@@ -44,20 +45,20 @@ export function AchievementsModal({ open, onClose, achievements, c, lang }) {
         <div style={{
           width: 48, height: 48, borderRadius: 24, flexShrink: 0,
           display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: 22, position: "relative",
+          position: "relative",
           background: isEarned
             ? `radial-gradient(circle, ${c.gold}22 0%, ${c.gold}08 70%)`
             : c.bg,
           border: `2px solid ${isEarned ? c.gold + "66" : c.border}`,
           boxShadow: isEarned ? `0 0 16px ${c.gold}33` : "none"
         }}>
-          {a.icon}
+          {(() => { const IconComp = KIcon[a.icon]; return IconComp ? <IconComp color={isEarned ? c.gold : c.textMuted} size={22} /> : null; })()}
           {!isEarned && (
             <div style={{
               position: "absolute", inset: 0, borderRadius: 24,
               display: "flex", alignItems: "center", justifyContent: "center",
-              background: "rgba(0,0,0,0.35)", fontSize: 16
-            }}>🔒</div>
+              background: "rgba(0,0,0,0.35)"
+            }}><KIcon.shield color={c.textMuted} size={16} /></div>
           )}
         </div>
 

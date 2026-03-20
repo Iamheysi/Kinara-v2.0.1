@@ -1,11 +1,12 @@
 import { useState, useRef } from 'react';
+import { KIcon } from '../brandedIcons.jsx';
 
 const GOALS = [
-  { id: 'strength', icon: '\u{1F4AA}', en: 'Strength', ru: '\u0421\u0438\u043B\u0430', descEn: 'Build raw power', descRu: '\u041D\u0430\u0440\u0430\u0449\u0438\u0432\u0430\u0439 \u0441\u0438\u043B\u0443' },
-  { id: 'hypertrophy', icon: '\u{1F3CB}\uFE0F', en: 'Hypertrophy', ru: '\u0413\u0438\u043F\u0435\u0440\u0442\u0440\u043E\u0444\u0438\u044F', descEn: 'Maximize muscle growth', descRu: '\u041C\u0430\u043A\u0441\u0438\u043C\u0430\u043B\u044C\u043D\u044B\u0439 \u0440\u043E\u0441\u0442 \u043C\u044B\u0448\u0446' },
-  { id: 'fatLoss', icon: '\u{1F525}', en: 'Fat Loss', ru: '\u0416\u0438\u0440\u043E\u0441\u0436\u0438\u0433\u0430\u043D\u0438\u0435', descEn: 'Lean & defined', descRu: '\u0420\u0435\u043B\u044C\u0435\u0444 \u0438 \u0441\u0443\u0445\u043E\u0441\u0442\u044C' },
-  { id: 'endurance', icon: '\u{1F3C3}', en: 'Endurance', ru: '\u0412\u044B\u043D\u043E\u0441\u043B\u0438\u0432\u043E\u0441\u0442\u044C', descEn: 'Go the distance', descRu: '\u041F\u0440\u0435\u043E\u0434\u043E\u043B\u0435\u0432\u0430\u0439 \u0434\u0438\u0441\u0442\u0430\u043D\u0446\u0438\u0438' },
-  { id: 'general', icon: '\u2B50', en: 'General Fitness', ru: '\u041E\u0431\u0449\u0430\u044F \u0444\u043E\u0440\u043C\u0430', descEn: 'Stay active & healthy', descRu: '\u0410\u043A\u0442\u0438\u0432\u043D\u043E\u0441\u0442\u044C \u0438 \u0437\u0434\u043E\u0440\u043E\u0432\u044C\u0435' },
+  { id: 'strength', icon: 'strength', en: 'Strength', ru: 'Сила', descEn: 'Build raw power', descRu: 'Наращивай силу' },
+  { id: 'hypertrophy', icon: 'hypertrophy', en: 'Hypertrophy', ru: 'Гипертрофия', descEn: 'Maximize muscle growth', descRu: 'Максимальный рост мышц' },
+  { id: 'fatLoss', icon: 'fatLoss', en: 'Fat Loss', ru: 'Жиросжигание', descEn: 'Lean & defined', descRu: 'Рельеф и сухость' },
+  { id: 'endurance', icon: 'endurance', en: 'Endurance', ru: 'Выносливость', descEn: 'Go the distance', descRu: 'Преодолевай дистанции' },
+  { id: 'general', icon: 'general', en: 'General Fitness', ru: 'Общая форма', descEn: 'Stay active & healthy', descRu: 'Активность и здоровье' },
 ];
 
 export function OnboardingWizard({ c, t, lang, plans, onComplete }) {
@@ -24,7 +25,9 @@ export function OnboardingWizard({ c, t, lang, plans, onComplete }) {
       setStep(next);
       setAnim({ opacity: 0, transform: 'translateY(-18px)' });
       requestAnimationFrame(() => {
-        setAnim({ opacity: 1, transform: 'translateY(0)' });
+        requestAnimationFrame(() => {
+          setAnim({ opacity: 1, transform: 'translateY(0)' });
+        });
       });
     }, 220);
   };
@@ -43,6 +46,7 @@ export function OnboardingWizard({ c, t, lang, plans, onComplete }) {
       name: name.trim() || (isRu ? 'Мой профиль' : 'My Profile'),
       goal,
       selectedPlanId,
+      photo,
     });
   };
 
@@ -107,20 +111,37 @@ export function OnboardingWizard({ c, t, lang, plans, onComplete }) {
 
         {/* ─── Step 1: Welcome + Name ─── */}
         {step === 0 && (<>
-          {/* Photo */}
+          {/* Photo with default avatar */}
           <div
             onClick={() => photoRef.current?.click()}
             style={{
-              width: 88, height: 88, borderRadius: '50%',
-              background: photo ? `url(${photo}) center/cover` : c.primaryDim,
-              border: `2px dashed ${c.border}`,
+              width: 96, height: 96, borderRadius: '50%',
+              background: photo ? `url(${photo}) center/cover` : `linear-gradient(135deg, ${c.primary}, ${c.primaryLight})`,
+              border: photo ? `3px solid ${c.primary}44` : `2px dashed ${c.border}`,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', marginBottom: 24, flexShrink: 0,
-              transition: 'border-color 0.2s',
+              cursor: 'pointer', marginBottom: 8, flexShrink: 0,
+              transition: 'border-color 0.2s, transform 0.2s',
+              boxShadow: photo ? `0 4px 20px ${c.primary}33` : 'none',
+              position: 'relative',
             }}
           >
-            {!photo && <span style={{ fontSize: 28, opacity: 0.5 }}>📷</span>}
+            {!photo && <KIcon.avatar color="#fff" size={44} />}
+            {/* Camera overlay */}
+            <div style={{
+              position: 'absolute', bottom: 0, right: 0,
+              width: 28, height: 28, borderRadius: '50%',
+              background: c.card, border: `2px solid ${c.bg}`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <KIcon.camera color={c.primary} size={14} />
+            </div>
           </div>
+          {/* Optional tip */}
+          <p style={{
+            color: c.textMuted, fontSize: 12, marginBottom: 24, textAlign: 'center',
+          }}>
+            {isRu ? 'Нажмите, чтобы загрузить фото (необязательно)' : 'Tap to upload a photo (optional)'}
+          </p>
 
           <h1 style={{
             fontFamily: "'Barlow Condensed',sans-serif",
@@ -178,6 +199,7 @@ export function OnboardingWizard({ c, t, lang, plans, onComplete }) {
           }}>
             {GOALS.map(g => {
               const sel = goal === g.id;
+              const IconComp = KIcon[g.icon];
               return (
                 <div
                   key={g.id}
@@ -191,7 +213,16 @@ export function OnboardingWizard({ c, t, lang, plans, onComplete }) {
                     boxShadow: sel ? `0 0 0 1px ${c.primary}44` : 'none',
                   }}
                 >
-                  <div style={{ fontSize: 30, marginBottom: 8 }}>{g.icon}</div>
+                  <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
+                    <div style={{
+                      width: 44, height: 44, borderRadius: 12,
+                      background: sel ? `${c.primary}22` : c.bg,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      border: `1px solid ${sel ? c.primary + '33' : c.border}`,
+                    }}>
+                      {IconComp && <IconComp color={sel ? c.primary : c.textSecondary} size={24} />}
+                    </div>
+                  </div>
                   <div style={{
                     fontWeight: 700, fontSize: 14, color: c.textPrimary,
                     marginBottom: 4,
@@ -252,7 +283,7 @@ export function OnboardingWizard({ c, t, lang, plans, onComplete }) {
                       </div>
                       <div style={{ fontSize: 13, color: c.textSecondary }}>
                         {plan.exercises.length} {isRu ? 'упражнений' : 'exercises'}
-                        {plan.notes ? ` \u00B7 ${plan.notes}` : ''}
+                        {plan.notes ? ` · ${plan.notes}` : ''}
                       </div>
                     </div>
                     {sel && (
