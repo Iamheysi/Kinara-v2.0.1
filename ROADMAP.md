@@ -80,12 +80,12 @@ These are features implied by the UI but not yet built:
 
 | Feature | Priority | Notes | Status |
 |---------|----------|-------|--------|
-| **Onboarding flow** | High | 3-step wizard (set goal → pick/create plan → dashboard) | ⬜ Not started |
-| **Empty states** | High | Every tab needs an empty-state illustration + CTA | ⬜ Not started |
+| **Onboarding flow** | High | 3-step wizard (name → goal → plan) with animations | ✅ Done |
+| **Empty states** | High | Every tab has empty-state with icon + CTA | ✅ Done |
 | **Reminders / notifications** | Medium | Settings UI shows "Coming Soon"; push notifications planned for Phase 2/3 | 🔧 In progress |
 | **Achievements** | Medium | 25 achievements with full modal, progress bars, gamified design | ✅ Done |
 | **Help & Support page** | Medium | Accessible from settings and burger drawer | ✅ Done |
-| **Password reset flow** | High | "Forgot password?" is not implemented | ⬜ Not started |
+| **Password reset flow** | High | Forgot password + new password views with Supabase integration | ✅ Done |
 | **Delete account** | High | Danger Zone in Settings: reset progress, clear data, delete account with confirmation | ✅ Done |
 | **Data export (GDPR)** | High | JSON export exists — verify completeness | ✅ Done |
 | **Terms of Service & Privacy Policy** | High | Pages created, accessible from burger drawer and settings | ✅ Done |
@@ -126,11 +126,16 @@ These are features implied by the UI but not yet built:
 - [ ] RLS verified on all tables
 - [ ] Sentry error monitoring live
 - [ ] Analytics live
-- [ ] Password reset flow
+- [x] Password reset flow
 - [x] Delete account (Danger Zone in Settings)
 - [x] Terms of Service + Privacy Policy pages
-- [ ] Onboarding wizard
-- [ ] Empty states on all tabs
+- [x] Onboarding wizard (3-step: name → goal → plan)
+- [x] Empty states on all tabs
+- [x] Skeleton loading screen with shimmer animation
+- [x] Milestone celebration modals (1, 5, 10, 25, 50, 100 workouts)
+- [x] Upgrade prompt / premium tier teaser (Kinara Pro)
+- [x] Enhanced home dashboard (time-based greeting, personalized hero)
+- [x] Sidebar polish (hover effects, Pro teaser, clickable profile)
 - [ ] Lighthouse ≥ 90 on mobile
 
 ---
@@ -287,11 +292,11 @@ These must be done before store submissions:
 
 | Feature | Status |
 |---------|--------|
-| Password reset | Not built |
+| Password reset | ✅ Done |
 | Delete account (in-app) | ✅ Done — Danger Zone in Settings |
 | Terms of Service screen | ✅ Done |
 | Privacy Policy screen | ✅ Done |
-| Onboarding flow | Not built |
+| Onboarding flow | ✅ Done — 3-step wizard |
 | Local notifications (workout reminders) | Not built |
 | Offline mode (Phase 2) | Not built |
 | Full Russian localisation | 🔧 In progress |

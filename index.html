@@ -85,6 +85,7 @@
       <h2 style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;color:#0D1B36;margin:0 0 4px;text-align:center;" data-i18n="welcomeBack">Welcome Back</h2>
       <input id="auth-email" type="email" autocomplete="email" style="width:100%;padding:12px 14px;border-radius:10px;border:1px solid #C4CFEA;background:#F8FAFF;color:#0D1B36;font-size:14px;font-family:'DM Sans',sans-serif;outline:none;box-sizing:border-box;transition:border-color 0.2s;" data-i18n-placeholder="emailPlaceholder" placeholder="Email address"/>
       <input id="auth-password" type="password" autocomplete="current-password" style="width:100%;padding:12px 14px;border-radius:10px;border:1px solid #C4CFEA;background:#F8FAFF;color:#0D1B36;font-size:14px;font-family:'DM Sans',sans-serif;outline:none;box-sizing:border-box;transition:border-color 0.2s;" data-i18n-placeholder="passwordPlaceholder" placeholder="Password"/>
+      <p style="text-align:right;margin:-2px 0 0;"><a href="#" id="show-forgot-link" style="color:#5A6A84;font-size:12px;text-decoration:none;transition:color 0.2s;" data-i18n="forgotPassword">Forgot password?</a></p>
       <p id="auth-error" style="display:none;color:#D9534F;font-size:12px;text-align:center;margin:0;"></p>
       <button id="email-signin-btn" style="width:100%;padding:13px 0;border-radius:10px;border:none;background:#2B55CC;color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background 0.2s;margin-top:2px;" data-i18n="signInBtn">Sign In</button>
       <p style="text-align:center;font-size:13px;color:#5A6A84;margin:4px 0 0;"><span data-i18n="noAccount">Don't have an account?</span> <a href="#" id="show-signup-link" style="color:#2B55CC;font-weight:600;text-decoration:none;" data-i18n="signUpLink">Sign Up</a></p>
@@ -141,6 +142,24 @@
         <p style="color:#5A6A84;font-size:11.5px;margin:0;line-height:1.5;"><span data-i18n="didntReceive">Didn't receive it? Check your spam folder or</span> <a href="#" id="resend-confirm-link" style="color:#2B55CC;font-weight:600;text-decoration:none;" data-i18n="resendEmail">resend email</a></p>
       </div>
       <p style="margin:2px 0 0;"><a href="#" id="back-to-signin-link" style="color:#2B55CC;font-size:13px;font-weight:600;text-decoration:none;" data-i18n="backToSignIn">Back to Sign In</a></p>
+    </div>
+    <!-- ── Forgot Password view ── -->
+    <div id="auth-forgot-view" style="display:none;flex-direction:column;gap:12px;">
+      <h2 style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;color:#0D1B36;margin:0 0 4px;text-align:center;" data-i18n="resetPassword">Reset Password</h2>
+      <p style="color:#5A6A84;font-size:13px;text-align:center;margin:0;" data-i18n="resetInstructions">Enter your email and we'll send you a reset link.</p>
+      <input id="forgot-email" type="email" autocomplete="email" style="width:100%;padding:12px 14px;border-radius:10px;border:1px solid #C4CFEA;background:#F8FAFF;color:#0D1B36;font-size:14px;font-family:'DM Sans',sans-serif;outline:none;box-sizing:border-box;transition:border-color 0.2s;" data-i18n-placeholder="emailPlaceholder" placeholder="Email address"/>
+      <p id="forgot-error" style="display:none;color:#D9534F;font-size:12px;text-align:center;margin:0;"></p>
+      <p id="forgot-success" style="display:none;color:#2E6E45;font-size:12px;text-align:center;margin:0;"></p>
+      <button id="send-reset-btn" style="width:100%;padding:13px 0;border-radius:10px;border:none;background:#2B55CC;color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background 0.2s;margin-top:2px;" data-i18n="sendResetLink">Send Reset Link</button>
+      <p style="text-align:center;margin:4px 0 0;"><a href="#" id="forgot-back-link" style="color:#2B55CC;font-size:13px;font-weight:600;text-decoration:none;" data-i18n="backToSignIn">Back to Sign In</a></p>
+    </div>
+    <!-- ── New Password view (after recovery redirect) ── -->
+    <div id="auth-newpassword-view" style="display:none;flex-direction:column;gap:12px;">
+      <h2 style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;color:#0D1B36;margin:0 0 4px;text-align:center;" data-i18n="setNewPassword">Set New Password</h2>
+      <input id="new-password" type="password" autocomplete="new-password" style="width:100%;padding:12px 14px;border-radius:10px;border:1px solid #C4CFEA;background:#F8FAFF;color:#0D1B36;font-size:14px;font-family:'DM Sans',sans-serif;outline:none;box-sizing:border-box;transition:border-color 0.2s;" data-i18n-placeholder="newPasswordPlaceholder" placeholder="New password (min. 6 characters)"/>
+      <input id="confirm-new-password" type="password" autocomplete="new-password" style="width:100%;padding:12px 14px;border-radius:10px;border:1px solid #C4CFEA;background:#F8FAFF;color:#0D1B36;font-size:14px;font-family:'DM Sans',sans-serif;outline:none;box-sizing:border-box;transition:border-color 0.2s;" data-i18n-placeholder="confirmPasswordPlaceholder" placeholder="Confirm new password"/>
+      <p id="newpass-error" style="display:none;color:#D9534F;font-size:12px;text-align:center;margin:0;"></p>
+      <button id="update-password-btn" style="width:100%;padding:13px 0;border-radius:10px;border:none;background:#2B55CC;color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background 0.2s;margin-top:2px;" data-i18n="updatePasswordBtn">Update Password</button>
     </div>
     <!-- ── Loading view (shown during sign-in / data fetch) ── -->
     <div id="auth-loading-view" style="display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:32px 0;text-align:center;">

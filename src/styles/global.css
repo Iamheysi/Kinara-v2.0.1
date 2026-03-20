@@ -46,3 +46,4 @@ input[type=number]{-moz-appearance:textfield;}
 .tab-content{animation:fadeUp .26s ease;}
 .kb-card-hover{transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;}
 .kb-card-hover:hover{transform:translateY(-1px);}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}

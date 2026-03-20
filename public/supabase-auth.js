@@ -66,6 +66,20 @@
       otpInvalid: 'Invalid code. Please try again.',
       otpExpired: 'Code expired. We sent a new one — check your email.',
       confirmSent: 'We sent a verification code to',
+      forgotPassword: 'Forgot password?',
+      resetPassword: 'Reset Password',
+      resetInstructions: "Enter your email and we'll send you a reset link.",
+      sendResetLink: 'Send Reset Link',
+      sendingReset: 'Sending…',
+      resetSent: 'Check your email for a password reset link!',
+      resetFail: 'Failed to send reset email. Try again.',
+      setNewPassword: 'Set New Password',
+      newPasswordPlaceholder: 'New password (min. 6 characters)',
+      confirmPasswordPlaceholder: 'Confirm new password',
+      updatePasswordBtn: 'Update Password',
+      updatingPassword: 'Updating…',
+      passwordsNoMatch: 'Passwords do not match.',
+      passwordUpdated: 'Password updated! Signing you in…',
     },
     ru: {
       subtitle: 'Войдите, чтобы сохранять тренировки',
@@ -109,6 +123,20 @@
       otpInvalid: 'Неверный код. Попробуйте ещё раз.',
       otpExpired: 'Код истёк. Мы отправили новый — проверьте почту.',
       confirmSent: 'Мы отправили код подтверждения на',
+      forgotPassword: 'Забыли пароль?',
+      resetPassword: 'Сброс пароля',
+      resetInstructions: 'Введите email и мы отправим ссылку для сброса.',
+      sendResetLink: 'Отправить ссылку',
+      sendingReset: 'Отправляем…',
+      resetSent: 'Проверьте почту для сброса пароля!',
+      resetFail: 'Не удалось отправить. Попробуйте снова.',
+      setNewPassword: 'Новый пароль',
+      newPasswordPlaceholder: 'Новый пароль (мин. 6 символов)',
+      confirmPasswordPlaceholder: 'Подтвердите новый пароль',
+      updatePasswordBtn: 'Обновить пароль',
+      updatingPassword: 'Обновляем…',
+      passwordsNoMatch: 'Пароли не совпадают.',
+      passwordUpdated: 'Пароль обновлён! Входим…',
     },
   };
 
@@ -448,12 +476,16 @@
     const signUp    = document.getElementById('auth-signup-view');
     const confirm   = document.getElementById('auth-confirm-view');
     const loadingEl = document.getElementById('auth-loading-view');
+    const forgotEl  = document.getElementById('auth-forgot-view');
+    const newPassEl = document.getElementById('auth-newpassword-view');
     const subtitle  = document.getElementById('auth-loading');
 
     if (signIn)    signIn.style.display    = 'none';
     if (signUp)    signUp.style.display    = 'none';
     if (confirm)   confirm.style.display   = 'none';
     if (loadingEl) loadingEl.style.display = 'none';
+    if (forgotEl)  forgotEl.style.display  = 'none';
+    if (newPassEl) newPassEl.style.display = 'none';
 
     if (view === 'signup') {
       if (signUp) signUp.style.display = 'flex';
@@ -467,6 +499,15 @@
     } else if (view === 'loading') {
       if (loadingEl) loadingEl.style.display = 'flex';
       if (subtitle) subtitle.textContent = t18n('loading');
+    } else if (view === 'forgot') {
+      if (forgotEl) forgotEl.style.display = 'flex';
+      if (subtitle) subtitle.textContent = t18n('resetPassword');
+      showError('forgot-error', '');
+      showError('forgot-success', '');
+    } else if (view === 'newPassword') {
+      if (newPassEl) newPassEl.style.display = 'flex';
+      if (subtitle) subtitle.textContent = t18n('setNewPassword');
+      showError('newpass-error', '');
     } else {
       if (signIn) signIn.style.display = 'flex';
       if (subtitle) subtitle.textContent = t18n('subtitle');
@@ -629,6 +670,75 @@
     }
   }
 
+  // ── Password Reset ─────────────────────────────────────────────────────────
+
+  async function sendPasswordReset() {
+    const email = document.getElementById('forgot-email')?.value?.trim();
+    if (!email) { showError('forgot-error', t18n('enterBoth')); return; }
+
+    showError('forgot-error', '');
+    showError('forgot-success', '');
+    const btn = document.getElementById('send-reset-btn');
+    if (btn) { btn.disabled = true; btn.textContent = t18n('sendingReset'); }
+
+    const { error } = await db.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + window.location.pathname,
+    });
+
+    if (error) {
+      showError('forgot-error', error.message || t18n('resetFail'));
+    } else {
+      showError('forgot-success', t18n('resetSent'));
+    }
+    if (btn) { btn.disabled = false; btn.textContent = t18n('sendResetLink'); }
+  }
+
+  async function updatePassword() {
+    const pass = document.getElementById('new-password')?.value;
+    const confirm = document.getElementById('confirm-new-password')?.value;
+
+    if (!pass || !confirm) { showError('newpass-error', t18n('fillAll')); return; }
+    if (pass !== confirm) { showError('newpass-error', t18n('passwordsNoMatch')); return; }
+    if (pass.length < 6) { showError('newpass-error', t18n('passMin')); return; }
+
+    showError('newpass-error', '');
+    const btn = document.getElementById('update-password-btn');
+    if (btn) { btn.disabled = true; btn.textContent = t18n('updatingPassword'); }
+
+    const { error } = await db.auth.updateUser({ password: pass });
+
+    if (error) {
+      showError('newpass-error', error.message);
+      if (btn) { btn.disabled = false; btn.textContent = t18n('updatePasswordBtn'); }
+    } else {
+      showError('newpass-error', '');
+      const successEl = document.getElementById('newpass-error');
+      if (successEl) { successEl.textContent = t18n('passwordUpdated'); successEl.style.display = 'block'; successEl.style.color = '#2E6E45'; }
+      // Session is already active from recovery — proceed to app
+      setTimeout(() => {
+        if (currentUserId && !appMounted) {
+          appMounted = true;
+          loadUserData(currentUserId).then(data => mountReact(data));
+        } else if (appMounted) {
+          hideAuthGate();
+        }
+      }, 1500);
+    }
+  }
+
+  // Detect password recovery redirect (Supabase uses hash fragment: #type=recovery)
+  function checkForRecovery() {
+    const hash = window.location.hash;
+    if (hash && hash.includes('type=recovery')) {
+      // Show the new password form once Supabase processes the recovery token
+      setTimeout(() => {
+        const el = document.getElementById('auth-gate');
+        if (el) el.style.display = 'flex';
+        switchView('newPassword');
+      }, 500);
+    }
+  }
+
   // ── Bind buttons on DOMContentLoaded ───────────────────────────────────────
 
   document.addEventListener('DOMContentLoaded', () => {
@@ -661,5 +771,22 @@
 
     document.getElementById('try-guest-btn')
       ?.addEventListener('click', launchGuestMode);
+
+    // Password reset bindings
+    document.getElementById('show-forgot-link')
+      ?.addEventListener('click', (e) => { e.preventDefault(); switchView('forgot'); });
+    document.getElementById('forgot-back-link')
+      ?.addEventListener('click', (e) => { e.preventDefault(); switchView('signin'); });
+    document.getElementById('send-reset-btn')
+      ?.addEventListener('click', sendPasswordReset);
+    document.getElementById('update-password-btn')
+      ?.addEventListener('click', updatePassword);
+    document.getElementById('forgot-email')
+      ?.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendPasswordReset(); });
+    document.getElementById('confirm-new-password')
+      ?.addEventListener('keydown', (e) => { if (e.key === 'Enter') updatePassword(); });
+
+    // Check for recovery redirect
+    checkForRecovery();
   });
 })();
